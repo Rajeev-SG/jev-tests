@@ -1,0 +1,293 @@
+{
+  "always_review_baseline": {
+    "recall_of_needed_review": 1.0,
+    "reviews_avoided": 0
+  },
+  "classifier_dev_fast": {
+    "batch_latency": {
+      "max_ms": null,
+      "mean_ms": null,
+      "n": 0,
+      "p50_ms": null,
+      "p95_ms": null
+    },
+    "batch_latency_historical_from_cache": {
+      "max_ms": 23752.174332999857,
+      "mean_ms": 12937.010864498006,
+      "n": 4,
+      "p50_ms": 12423.357312494772,
+      "p95_ms": 23181.166158098495
+    },
+    "cache_entries": 24,
+    "cache_hits": 4,
+    "classifications": 204,
+    "cold_batches_measured": 0,
+    "distinct_batches": 0,
+    "distinct_batches_historical": 4,
+    "failures": 0,
+    "historical_meaning": "cold measurements recorded by the run that first made those calls; not this run",
+    "latency_meaning": "cold network calls made in this process only; cache hits contribute none",
+    "ms_per_item_amortised": null,
+    "ms_per_item_amortised_historical": 253.66687969603933,
+    "requests": 0,
+    "tier": "smart",
+    "warm_cache_hits_excluded_from_latency": 4
+  },
+  "data": {
+    "caveat": "Merged is not treated as safe. Positives come only from objective GitHub metadata and file-overlap rework detection, so the positive set is small and recall figures are coarse.",
+    "needed_review": 60,
+    "needed_review_fraction": 0.5882352941176471,
+    "prs": 102,
+    "repos": {
+      "ad-platform-intelligence": 30,
+      "codex-home": 30,
+      "jev-tests": 1,
+      "openreview": 30,
+      "project-recall": 11
+    },
+    "signal_sources": [
+      "ci_failure",
+      "changes_requested",
+      "follow_up_fixes",
+      "rework_prs"
+    ]
+  },
+  "deterministic_rules": {
+    "false_skips_share": 0.6923076923076923,
+    "missed_examples": [
+      "ad-platform-intelligence#50",
+      "ad-platform-intelligence#42",
+      "ad-platform-intelligence#40",
+      "ad-platform-intelligence#38",
+      "ad-platform-intelligence#37",
+      "codex-home#113",
+      "codex-home#112",
+      "codex-home#111",
+      "codex-home#82"
+    ],
+    "missed_needed_review": 9,
+    "recall_of_needed_review": 0.85,
+    "reviews_avoided": 13,
+    "reviews_avoided_fraction": 0.12745098039215685,
+    "routes": {
+      "high_risk": 22,
+      "lightweight": 13,
+      "normal": 67
+    }
+  },
+  "glm": {
+    "cache_hits": 60,
+    "cold_calls_recorded_from_cache": 60,
+    "completion_tokens": 0,
+    "cost_usd_from_snapshot": 0.0,
+    "cost_usd_from_usage": 0.0,
+    "cost_usd_including_cache": 0.01076,
+    "failures": 0,
+    "latency": {
+      "max_ms": null,
+      "mean_ms": null,
+      "n": 0,
+      "p50_ms": null,
+      "p95_ms": null
+    },
+    "latency_cold_only": {
+      "max_ms": null,
+      "mean_ms": null,
+      "n": 0,
+      "p50_ms": null,
+      "p95_ms": null
+    },
+    "latency_historical_from_cache": {
+      "max_ms": 19626.736584003083,
+      "mean_ms": 6312.048743716635,
+      "n": 60,
+      "p50_ms": 5612.660416503786,
+      "p95_ms": 10869.94254790406
+    },
+    "latency_historical_meaning": "cold measurements recorded by the run that first made those calls; not this run.",
+    "latency_meaning": "cold calls made in this process only. Cache hits contribute no latency, and measurements recorded by an earlier run are reported separately under latency_historical_from_cache rather than mixed into this figure.",
+    "model": "z-ai/glm-5.3-flash",
+    "prompt_tokens": 0,
+    "requests": 0,
+    "tokens_including_cache": {
+      "completion": 19567,
+      "prompt": 11764
+    },
+    "warm_cache_hits_excluded_from_latency": 60
+  },
+  "glm_cost": {
+    "illustrative_full_review_cost_usd": 0.0095,
+    "mean_prompt_tokens_per_pr": 196.54237288135593,
+    "measured_sample_cost_usd": 0.01043806599,
+    "note": "the GLM sample saw the diff summary, not the full diff; a real full review reads the patch, so the illustrative figure is a lower bound"
+  },
+  "glm_gate_sample": {
+    "false_skips_share": 1.0,
+    "missed_examples": [
+      "ad-platform-intelligence#50",
+      "ad-platform-intelligence#49",
+      "ad-platform-intelligence#42",
+      "ad-platform-intelligence#40",
+      "ad-platform-intelligence#38",
+      "ad-platform-intelligence#37",
+      "ad-platform-intelligence#28",
+      "codex-home#117",
+      "codex-home#116",
+      "codex-home#113"
+    ],
+    "missed_needed_review": 21,
+    "parsed": 59,
+    "recall_of_needed_review": 0.6440677966101694,
+    "reviews_avoided": 21,
+    "reviews_avoided_fraction": 0.3559322033898305
+  },
+  "jev_gate_curve": [
+    {
+      "false_skips_share": 0.6875,
+      "missed_examples": [
+        "ad-platform-intelligence#50",
+        "ad-platform-intelligence#49",
+        "ad-platform-intelligence#42",
+        "ad-platform-intelligence#40",
+        "ad-platform-intelligence#38",
+        "ad-platform-intelligence#37",
+        "ad-platform-intelligence#35",
+        "ad-platform-intelligence#28",
+        "codex-home#117",
+        "codex-home#116"
+      ],
+      "missed_needed_review": 22,
+      "recall_of_needed_review": 0.6333333333333333,
+      "reviews_avoided": 32,
+      "reviews_avoided_fraction": 0.3137254901960784,
+      "threshold": 0.0
+    },
+    {
+      "false_skips_share": 0.7096774193548387,
+      "missed_examples": [
+        "ad-platform-intelligence#50",
+        "ad-platform-intelligence#49",
+        "ad-platform-intelligence#42",
+        "ad-platform-intelligence#40",
+        "ad-platform-intelligence#38",
+        "ad-platform-intelligence#37",
+        "ad-platform-intelligence#35",
+        "ad-platform-intelligence#28",
+        "codex-home#117",
+        "codex-home#116"
+      ],
+      "missed_needed_review": 22,
+      "recall_of_needed_review": 0.6333333333333333,
+      "reviews_avoided": 31,
+      "reviews_avoided_fraction": 0.30392156862745096,
+      "threshold": 0.5
+    },
+    {
+      "false_skips_share": 0.7096774193548387,
+      "missed_examples": [
+        "ad-platform-intelligence#50",
+        "ad-platform-intelligence#49",
+        "ad-platform-intelligence#42",
+        "ad-platform-intelligence#40",
+        "ad-platform-intelligence#38",
+        "ad-platform-intelligence#37",
+        "ad-platform-intelligence#35",
+        "ad-platform-intelligence#28",
+        "codex-home#117",
+        "codex-home#116"
+      ],
+      "missed_needed_review": 22,
+      "recall_of_needed_review": 0.6333333333333333,
+      "reviews_avoided": 31,
+      "reviews_avoided_fraction": 0.30392156862745096,
+      "threshold": 0.6
+    },
+    {
+      "false_skips_share": 0.7241379310344828,
+      "missed_examples": [
+        "ad-platform-intelligence#50",
+        "ad-platform-intelligence#49",
+        "ad-platform-intelligence#42",
+        "ad-platform-intelligence#40",
+        "ad-platform-intelligence#38",
+        "ad-platform-intelligence#37",
+        "ad-platform-intelligence#35",
+        "ad-platform-intelligence#28",
+        "codex-home#117",
+        "codex-home#116"
+      ],
+      "missed_needed_review": 21,
+      "recall_of_needed_review": 0.65,
+      "reviews_avoided": 29,
+      "reviews_avoided_fraction": 0.28431372549019607,
+      "threshold": 0.7
+    },
+    {
+      "false_skips_share": 0.7142857142857143,
+      "missed_examples": [
+        "ad-platform-intelligence#50",
+        "ad-platform-intelligence#49",
+        "ad-platform-intelligence#42",
+        "ad-platform-intelligence#40",
+        "ad-platform-intelligence#38",
+        "ad-platform-intelligence#37",
+        "ad-platform-intelligence#28",
+        "codex-home#117",
+        "codex-home#116",
+        "codex-home#113"
+      ],
+      "missed_needed_review": 20,
+      "recall_of_needed_review": 0.6666666666666666,
+      "reviews_avoided": 28,
+      "reviews_avoided_fraction": 0.27450980392156865,
+      "threshold": 0.8
+    },
+    {
+      "false_skips_share": 0.7142857142857143,
+      "missed_examples": [
+        "ad-platform-intelligence#50",
+        "ad-platform-intelligence#49",
+        "ad-platform-intelligence#42",
+        "ad-platform-intelligence#40",
+        "ad-platform-intelligence#38",
+        "ad-platform-intelligence#37",
+        "ad-platform-intelligence#28",
+        "codex-home#117",
+        "codex-home#116",
+        "codex-home#113"
+      ],
+      "missed_needed_review": 20,
+      "recall_of_needed_review": 0.6666666666666666,
+      "reviews_avoided": 28,
+      "reviews_avoided_fraction": 0.27450980392156865,
+      "threshold": 0.9
+    },
+    {
+      "false_skips_share": 0.68,
+      "missed_examples": [
+        "ad-platform-intelligence#50",
+        "ad-platform-intelligence#49",
+        "ad-platform-intelligence#42",
+        "ad-platform-intelligence#40",
+        "ad-platform-intelligence#38",
+        "ad-platform-intelligence#37",
+        "ad-platform-intelligence#28",
+        "codex-home#117",
+        "codex-home#116",
+        "codex-home#113"
+      ],
+      "missed_needed_review": 17,
+      "recall_of_needed_review": 0.7166666666666667,
+      "reviews_avoided": 25,
+      "reviews_avoided_fraction": 0.24509803921568626,
+      "threshold": 0.95
+    }
+  ],
+  "provenance": {
+    "note": "numbers come from cached third-party calls; a re-run is free but needs the same local inputs and the response cache unless the script can rebuild them",
+    "reason": "inputs are PR metadata from private repositories (openreview, ad-platform-intelligence, codex-home, project-recall)",
+    "regenerate_with": "python3 tests/04_pr_gate/collect.py --per-repo 30 (needs gh auth)",
+    "reproducible_from_repo": false
+  },
+  "test": "04_pr_gate"
+}

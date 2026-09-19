@@ -1,0 +1,101 @@
+{
+  "blocked": true,
+  "blocker": "the local Recoll index covers a narrow folder set and its default AND query semantics return very small result pools, so it cannot supply the 30-50 candidate chunks this design assumes",
+  "classifier": {
+    "batch_latency": {
+      "max_ms": null,
+      "mean_ms": null,
+      "n": 0,
+      "p50_ms": null,
+      "p95_ms": null
+    },
+    "batch_latency_historical_from_cache": {
+      "max_ms": null,
+      "mean_ms": null,
+      "n": 0,
+      "p50_ms": null,
+      "p95_ms": null
+    },
+    "cache_entries": 45,
+    "cache_hits": 0,
+    "classifications": 0,
+    "cold_batches_measured": 0,
+    "distinct_batches": 0,
+    "distinct_batches_historical": 0,
+    "failures": 0,
+    "historical_meaning": "cold measurements recorded by the run that first made those calls; not this run",
+    "latency_meaning": "cold network calls made in this process only; cache hits contribute none",
+    "ms_per_item_amortised": null,
+    "ms_per_item_amortised_historical": null,
+    "requests": 0,
+    "tier": "fast",
+    "warm_cache_hits_excluded_from_latency": 0
+  },
+  "context_token_reduction": null,
+  "coverage_diagnostics": {
+    "files_sampled": 36,
+    "ground_truth_hits": [],
+    "pool_sizes": [
+      1,
+      1,
+      1,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    "pools_empty": 0,
+    "pools_with_ground_truth": 0,
+    "tasks_matched": 27
+  },
+  "data": {
+    "ground_truth": "files the session actually read or edited, matched against the retrieved pool",
+    "retrieval": "local project-recall Recoll index via recollq",
+    "sessions": 0,
+    "top_dirs": [
+      "/Users/rajeev/Work/PHD/CHANEL/grasp",
+      "/Users/rajeev/Work/PHD/CHANEL/outputs/grasp_live_implementation_20260904",
+      "/Users/rajeev/Work/PHD/CHANEL/outputs/sitemap-v2/sharepoint-live-audit-20260904",
+      "/Users/rajeev/Work/Singulyr/singulyr.com/src/prototypes/tradehero",
+      "/Users/rajeev/Work/TradeHero/NewGen_Proposal",
+      "/Users/rajeev/tradehero-mobile-web-parity-audit"
+    ]
+  },
+  "diagnosis": {
+    "answer": "none of them: the retrieval corpus and the sessions do not overlap",
+    "implication": "a gate over retrieval cannot be measured until the index covers the folders the work actually happens in, which is a change to the operator's search configuration and is not taken here",
+    "measurement": "of real sessions that worked in the CHANEL/TradeHero families, only 1 of 26 touched any file inside the folders the Recoll index covers; the sessions worked on spreadsheets, scripts and browser profiles stored elsewhere",
+    "question": "is the fault the retriever, the pool builder, or the ground-truth matcher?",
+    "status": "issue #6 remains untested"
+  },
+  "harness_failure": true,
+  "harness_failure_meaning": "this is a failure of the experiment design, not evidence about Jev. The retrieval step could not produce a usable candidate pool, so no claim about a relevance gate is made in either direction.",
+  "per_session": [],
+  "precision_of_kept": null,
+  "provenance": {
+    "note": "numbers come from cached third-party calls; a re-run is free but needs the same local inputs and the response cache unless the script can rebuild them",
+    "reason": "retrieval runs against the local Recoll index and the ground truth comes from local agent sessions; neither is committed",
+    "regenerate_with": "python3 tests/05_retrieval_gate/run.py --dry-run (needs the local Recoll index)",
+    "reproducible_from_repo": false
+  },
+  "recall_of_useful_chunks": null,
+  "test": "05_retrieval_gate",
+  "threshold": 0.7,
+  "tier": "fast",
+  "totals": {
+    "after_tokens": 0,
+    "before_tokens": 0,
+    "chunks": 0,
+    "kept": 0,
+    "kept_useful": 0,
+    "useful_chunks": 0
+  },
+  "worst_session_recall": null
+}
