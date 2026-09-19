@@ -96,6 +96,52 @@ def parse_glm(text: str):
     return None, None
 
 
+def covered_indices(rows, states, client, batch_sizes=(250, 1000, 100, 50, 15, 7)):
+    """Indices already classified by the fast tier (present in the cache).
+
+    Used because classifier.dev's free tier caps at 20,000 fast classifications
+    per IP per day, and the failed 502-retry rounds spent this day's budget.
+    """
+    covered = set()
+    for size in batch_sizes:
+        for start in range(0, len(states), size):
+            chunk = [jb.redact(t) for t in states[start:start + size]]
+            body = {"inputs": chunk, "labels": list(LABELS), "tier": "fast",
+                    "instructions": INSTRUCTIONS}
+            if client.cache.get(client.cache.key(body)) is not None:
+                covered.update(range(start, min(start + size, len(states))))
+    return sorted(covered)
+
+
+def load_cached_results(states, batch_sizes=(250, 1000, 100, 50, 15, 7)):
+    """Per-item results recovered from cached classifier.dev batch responses.
+
+    The free fast tier caps at 20,000 classifications per IP per day and this
+    run's day is spent, so the partial result is scored from the batches that
+    already completed rather than re-asking the service.
+    """
+    client = jb.ClassifierDev(tier="fast")
+    out = {}
+    for size in batch_sizes:
+        for start in range(0, len(states), size):
+            chunk = [jb.redact(t) for t in states[start:start + size]]
+            body = {"inputs": chunk, "labels": list(LABELS), "tier": "fast",
+                    "instructions": INSTRUCTIONS}
+            payload = client.cache.get(client.cache.key(body))
+            if payload is None:
+                continue
+            for offset, result in enumerate(payload["results"]):
+                index = start + offset
+                if index >= len(states) or index in out:
+                    continue
+                item = dict(result)
+                item["_cached"] = True
+                item["_tier"] = "fast"
+                item["_batch_ms"] = payload.get("_measured_batch_ms", 0.0)
+                out[index] = item
+    return out
+
+
 def stratified_sample(rows, families, size):
     by_family = collections.defaultdict(list)
     for index, row in enumerate(rows):
@@ -161,10 +207,22 @@ def main() -> int:
     parser.add_argument("--no-glm", action="store_true")
     parser.add_argument("--refresh", action="store_true")
     parser.add_argument("--smart", action="store_true", help="also use the classifier.dev smart tier")
+    parser.add_argument("--only-covered", action="store_true",
+                        help="restrict to decisions already classified (daily cap workaround)")
     args = parser.parse_args()
     use_cache = not args.refresh
 
-    rows = load_decisions()
+    all_rows = load_decisions()
+    partial = False
+    cached_results = None
+    if args.only_covered:
+        cached_results = load_cached_results([r["state"] for r in all_rows])
+        keep = sorted(cached_results)
+        rows = [all_rows[i] for i in keep]
+        cached_results = [cached_results[i] for i in keep]
+        partial = True
+    else:
+        rows = all_rows
     truth = [true_family(r) for r in rows]
     states = [r["state"] for r in rows]
     majority = collections.Counter(truth).most_common(1)[0][0]
@@ -178,7 +236,10 @@ def main() -> int:
 
     # Jev
     fast_client = jb.ClassifierDev(tier="fast", use_cache=use_cache)
-    fast = fast_client.classify(states, LABELS, instructions=INSTRUCTIONS)
+    if cached_results is not None:
+        fast = cached_results
+    else:
+        fast = fast_client.classify(states, LABELS, instructions=INSTRUCTIONS)
     fast_pred = [FAMILY_ALIAS.get(LABEL_TO_FAMILY.get(r["label"], r["label"]),
                                  LABEL_TO_FAMILY.get(r["label"], r["label"])) for r in fast]
     fast_conf = [r["confidence"] for r in fast]
@@ -234,8 +295,14 @@ def main() -> int:
             "sources": dict(collections.Counter(r["source"] for r in rows)),
             "families": dict(collections.Counter(truth)),
             "excluded_ambiguous": 1260,
+            "excluded_note_kind": "ambiguous steps",
             "excluded_note": "exec_command/bash steps whose command matched no family rule",
             "label_basis": "observed next tool in successful historical sessions",
+            "partial_run": partial,
+            "partial_reason": ("classifier.dev free tier hit its 20,000 fast classifications "
+                               "per IP per day cap; only the decisions already classified "
+                               "in this run's cache are scored") if partial else None,
+            "coverage_by_source": dict(collections.Counter(r["source"] for r in rows)),
         },
         "methods": {
             "majority_class_baseline": {"top1_accuracy": accuracy(majority_pred, truth), "majority": majority},

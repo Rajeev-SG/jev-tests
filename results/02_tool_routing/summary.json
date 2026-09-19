@@ -1,0 +1,318 @@
+{
+  "calibration_fast": [
+    {
+      "accuracy": 0.4834558823529412,
+      "confidence_bucket": "[0.0, 0.5)",
+      "n": 544
+    },
+    {
+      "accuracy": 0.618798955613577,
+      "confidence_bucket": "[0.5, 0.7)",
+      "n": 383
+    },
+    {
+      "accuracy": 0.7972508591065293,
+      "confidence_bucket": "[0.7, 0.9)",
+      "n": 291
+    },
+    {
+      "accuracy": 0.9361702127659575,
+      "confidence_bucket": "[0.9, 1.01)",
+      "n": 47
+    }
+  ],
+  "classifier_dev_fast": {
+    "batch_latency": {
+      "max_ms": null,
+      "mean_ms": null,
+      "n": 0,
+      "p50_ms": null,
+      "p95_ms": null
+    },
+    "cache_entries": 36,
+    "cache_hits": 0,
+    "classifications": 0,
+    "distinct_batches": 0,
+    "failures": 0,
+    "ms_per_item_amortised": null,
+    "requests": 0,
+    "tier": "fast"
+  },
+  "classifier_dev_fast_smart_escalation": {
+    "ran": false,
+    "threshold": 0.7,
+    "unsure_count": 927,
+    "unsure_fraction": 0.7328063241106719
+  },
+  "data": {
+    "coverage_by_source": {
+      "claude": 403,
+      "codex": 15,
+      "droid": 86,
+      "pi": 761
+    },
+    "decisions": 1265,
+    "excluded_ambiguous": 1260,
+    "excluded_note": "exec_command/bash steps whose command matched no family rule",
+    "excluded_note_kind": "ambiguous steps",
+    "families": {
+      "browser": 44,
+      "edit": 218,
+      "git": 35,
+      "read": 526,
+      "search": 206,
+      "shell": 228,
+      "test_build": 8
+    },
+    "label_basis": "observed next tool in successful historical sessions",
+    "partial_reason": "classifier.dev free tier hit its 20,000 fast classifications per IP per day cap; only the decisions already classified in this run's cache are scored",
+    "partial_run": true,
+    "sources": {
+      "claude": 403,
+      "codex": 15,
+      "droid": 86,
+      "pi": 761
+    }
+  },
+  "escalation_estimate": [
+    {
+      "auto_accuracy": 0.6134387351778656,
+      "auto_coverage": 1.0,
+      "estimated_combined_accuracy": null,
+      "glm_accuracy_on_unsure_sample": null,
+      "glm_unsure_sample_n": 0,
+      "threshold": 0.0
+    },
+    {
+      "auto_accuracy": 0.6402439024390244,
+      "auto_coverage": 0.9075098814229249,
+      "estimated_combined_accuracy": 0.6041501976284585,
+      "glm_accuracy_on_unsure_sample": 0.25,
+      "glm_unsure_sample_n": 8,
+      "threshold": 0.3
+    },
+    {
+      "auto_accuracy": 0.6691253951527925,
+      "auto_coverage": 0.750197628458498,
+      "estimated_combined_accuracy": 0.5677137507801123,
+      "glm_accuracy_on_unsure_sample": 0.2631578947368421,
+      "glm_unsure_sample_n": 19,
+      "threshold": 0.4
+    },
+    {
+      "auto_accuracy": 0.7115117891816921,
+      "auto_coverage": 0.5699604743083004,
+      "estimated_combined_accuracy": 0.5193675889328063,
+      "glm_accuracy_on_unsure_sample": 0.2647058823529412,
+      "glm_unsure_sample_n": 34,
+      "threshold": 0.5
+    },
+    {
+      "auto_accuracy": 0.7955911823647295,
+      "auto_coverage": 0.39446640316205533,
+      "estimated_combined_accuracy": 0.5197154150197629,
+      "glm_accuracy_on_unsure_sample": 0.34,
+      "glm_unsure_sample_n": 50,
+      "threshold": 0.6
+    },
+    {
+      "auto_accuracy": 0.8165680473372781,
+      "auto_coverage": 0.2671936758893281,
+      "estimated_combined_accuracy": 0.476212213995435,
+      "glm_accuracy_on_unsure_sample": 0.352112676056338,
+      "glm_unsure_sample_n": 71,
+      "threshold": 0.7
+    },
+    {
+      "auto_accuracy": 0.9012345679012346,
+      "auto_coverage": 0.12806324110671938,
+      "estimated_combined_accuracy": 0.4532905138339921,
+      "glm_accuracy_on_unsure_sample": 0.3875,
+      "glm_unsure_sample_n": 80,
+      "threshold": 0.8
+    },
+    {
+      "auto_accuracy": 0.9361702127659575,
+      "auto_coverage": 0.03715415019762846,
+      "estimated_combined_accuracy": 0.4350668383887729,
+      "glm_accuracy_on_unsure_sample": 0.4157303370786517,
+      "glm_unsure_sample_n": 89,
+      "threshold": 0.9
+    },
+    {
+      "auto_accuracy": 0.9230769230769231,
+      "auto_coverage": 0.010276679841897233,
+      "estimated_combined_accuracy": 0.4273693456302152,
+      "glm_accuracy_on_unsure_sample": 0.4222222222222222,
+      "glm_unsure_sample_n": 90,
+      "threshold": 0.95
+    },
+    {
+      "auto_accuracy": null,
+      "auto_coverage": 0.0,
+      "estimated_combined_accuracy": 0.4222222222222222,
+      "glm_accuracy_on_unsure_sample": 0.4222222222222222,
+      "glm_unsure_sample_n": 90,
+      "threshold": 0.99
+    }
+  ],
+  "glm": {
+    "cache_hits": 0,
+    "completion_tokens": 29261,
+    "cost_usd_from_snapshot": 0.012034,
+    "cost_usd_from_usage": 0.018727,
+    "failures": 12,
+    "latency": {
+      "max_ms": 23712.938459008,
+      "mean_ms": 6415.10929904406,
+      "n": 90,
+      "p50_ms": 5259.43933299277,
+      "p95_ms": 14372.362831095228
+    },
+    "latency_cold_only": {
+      "max_ms": 23712.938459008,
+      "mean_ms": 6415.10929904406,
+      "n": 90,
+      "p50_ms": 5259.43933299277,
+      "p95_ms": 14372.362831095228
+    },
+    "model": "z-ai/glm-5.3-flash",
+    "prompt_tokens": 36171,
+    "requests": 90
+  },
+  "glm_vs_jev": {
+    "agreement": 0.43333333333333335
+  },
+  "methods": {
+    "classifier_dev_fast": {
+      "top1_accuracy": 0.6134387351778656,
+      "top2_accuracy": 0.8695652173913043
+    },
+    "classifier_dev_fast_smart_escalation": {
+      "top1_accuracy": 0.6134387351778656
+    },
+    "glm_5_3_flash_sample": {
+      "parsed": 90,
+      "sample_size": 90,
+      "top1_accuracy": 0.4222222222222222
+    },
+    "majority_class_baseline": {
+      "majority": "read",
+      "top1_accuracy": 0.4158102766798419
+    },
+    "repeat_last_action_baseline": {
+      "top1_accuracy": 0.5486166007905139
+    }
+  },
+  "per_family_recall_fast": {
+    "browser": {
+      "n": 44,
+      "recall": 0.7954545454545454
+    },
+    "edit": {
+      "n": 218,
+      "recall": 0.6100917431192661
+    },
+    "git": {
+      "n": 35,
+      "recall": 0.8285714285714286
+    },
+    "read": {
+      "n": 526,
+      "recall": 0.5209125475285171
+    },
+    "search": {
+      "n": 206,
+      "recall": 0.6359223300970874
+    },
+    "shell": {
+      "n": 228,
+      "recall": 0.7324561403508771
+    },
+    "test_build": {
+      "n": 8,
+      "recall": 0.875
+    }
+  },
+  "per_source_accuracy_fast": {
+    "claude": {
+      "n": 403,
+      "top1_accuracy": 0.7096774193548387
+    },
+    "codex": {
+      "n": 15,
+      "top1_accuracy": 0.5333333333333333
+    },
+    "droid": {
+      "n": 86,
+      "top1_accuracy": 0.5465116279069767
+    },
+    "pi": {
+      "n": 761,
+      "top1_accuracy": 0.5716162943495401
+    }
+  },
+  "test": "02_tool_routing",
+  "threshold_curve_fast": [
+    {
+      "auto_accuracy": 0.6134387351778656,
+      "auto_n": 1265,
+      "coverage": 1.0,
+      "threshold": 0.0
+    },
+    {
+      "auto_accuracy": 0.6402439024390244,
+      "auto_n": 1148,
+      "coverage": 0.9075098814229249,
+      "threshold": 0.3
+    },
+    {
+      "auto_accuracy": 0.6691253951527925,
+      "auto_n": 949,
+      "coverage": 0.750197628458498,
+      "threshold": 0.4
+    },
+    {
+      "auto_accuracy": 0.7115117891816921,
+      "auto_n": 721,
+      "coverage": 0.5699604743083004,
+      "threshold": 0.5
+    },
+    {
+      "auto_accuracy": 0.7955911823647295,
+      "auto_n": 499,
+      "coverage": 0.39446640316205533,
+      "threshold": 0.6
+    },
+    {
+      "auto_accuracy": 0.8165680473372781,
+      "auto_n": 338,
+      "coverage": 0.2671936758893281,
+      "threshold": 0.7
+    },
+    {
+      "auto_accuracy": 0.9012345679012346,
+      "auto_n": 162,
+      "coverage": 0.12806324110671938,
+      "threshold": 0.8
+    },
+    {
+      "auto_accuracy": 0.9361702127659575,
+      "auto_n": 47,
+      "coverage": 0.03715415019762846,
+      "threshold": 0.9
+    },
+    {
+      "auto_accuracy": 0.9230769230769231,
+      "auto_n": 13,
+      "coverage": 0.010276679841897233,
+      "threshold": 0.95
+    },
+    {
+      "auto_accuracy": null,
+      "auto_n": 0,
+      "coverage": 0.0,
+      "threshold": 0.99
+    }
+  ]
+}

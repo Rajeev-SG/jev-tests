@@ -21,6 +21,7 @@ import re
 import ssl
 import statistics
 import subprocess
+import sys
 import time
 import urllib.error
 import urllib.request
@@ -86,6 +87,9 @@ _SECRET_PATTERNS = [
     (re.compile(r"(?i)\b(authorization|api[_-]?key|password|secret|token)\b\s*[:=]\s*[\"']?[^\s\"',]{8,}"), "[redacted-credential]"),
     (re.compile(r"\bAKIA[0-9A-Z]{16}\b"), "[redacted-aws-key]"),
     (re.compile(r"\bclassifier_pro_[A-Za-z0-9]{8,}"), "[redacted-classifier-key]"),
+    (re.compile(r"\bya29\.[A-Za-z0-9_\-\.]{20,}"), "[redacted-google-oauth-token]"),
+    (re.compile(r"\b1//0[A-Za-z0-9_\-]{20,}"), "[redacted-google-refresh-token]"),
+    (re.compile(r"\bGOCSPX-[A-Za-z0-9_\-]{10,}"), "[redacted-google-client-secret]"),
 ]
 
 
@@ -136,7 +140,7 @@ class ClassifierDev:
     """classifier.dev client. `tier` is 'fast' (Jev alone) or 'smart'."""
 
     ENDPOINT = "https://classifier.dev/v1/classify"
-    MAX_INPUTS = {"fast": 1000, "smart": 200}
+    MAX_INPUTS = {"fast": 100, "smart": 60}
 
     def __init__(self, tier: str = "fast", redact_inputs: bool = True, max_retries: int = 5,
                  use_cache: bool = True):
@@ -194,40 +198,58 @@ class ClassifierDev:
         """Return one result dict per input, in input order.
 
         Each result gains `_cached` and `_batch_ms`. `confidence` is None when
-        the smart tier escalated the item to a reasoning model.
+        the smart tier escalated the item to a reasoning model. A 502 on a
+        large batch is handled by splitting the batch in half and retrying.
         """
         texts = [redact(t) if self.redact_inputs else t for t in texts]
-        out: list[dict | None] = [None] * len(texts)
+        out: list[dict] = []
         size = self.MAX_INPUTS[self.tier]
         for start in range(0, len(texts), size):
             chunk = texts[start : start + size]
-            body = {"inputs": chunk, "labels": list(labels), "tier": self.tier}
-            if instructions:
-                body["instructions"] = instructions
-            if multi:
-                body["multi"] = True
-            if max_labels:
-                body["max_labels"] = max_labels
-            key = self.cache.key(body)
-            cached = self.cache.get(key) if self.use_cache else None
-            if cached is not None:
-                self.cache_hits += 1
-                payload = cached
-                was_cached = True
-            else:
-                payload = self._post(body)
-                self.cache.put(key, payload)
-                was_cached = False
-            batch_ms = payload.get("_measured_batch_ms", 0.0)
-            self.observed.append((batch_ms, len(chunk)))
-            for offset, result in enumerate(payload["results"]):
-                result = dict(result)
-                result["_cached"] = was_cached
-                result["_tier"] = self.tier
-                result["_batch_ms"] = batch_ms
-                out[start + offset] = result
-            self.classifications += len(payload["results"])
+            if start:
+                # classifier.dev counts classifications per minute (3000/min on
+                # the free fast tier), so a full batch needs a real pause.
+                time.sleep(4.0)
+            out.extend(self._classify_chunk(chunk, labels, instructions, multi, max_labels))
         return out
+
+    def _classify_chunk(self, chunk, labels, instructions, multi, max_labels) -> list[dict]:
+        body = {"inputs": list(chunk), "labels": list(labels), "tier": self.tier}
+        if instructions:
+            body["instructions"] = instructions
+        if multi:
+            body["multi"] = True
+        if max_labels:
+            body["max_labels"] = max_labels
+        key = self.cache.key(body)
+        cached = self.cache.get(key) if self.use_cache else None
+        if cached is not None:
+            self.cache_hits += 1
+            payload = cached
+            was_cached = True
+        else:
+            try:
+                payload = self._post(body)
+            except urllib.error.HTTPError as exc:
+                if exc.code == 502 and len(chunk) > 20:
+                    mid = len(chunk) // 2
+                    print(f"classifier.dev 502 on {len(chunk)} inputs; splitting", file=sys.stderr)
+                    return (self._classify_chunk(chunk[:mid], labels, instructions, multi, max_labels)
+                            + self._classify_chunk(chunk[mid:], labels, instructions, multi, max_labels))
+                raise
+            self.cache.put(key, payload)
+            was_cached = False
+        batch_ms = payload.get("_measured_batch_ms", 0.0)
+        self.observed.append((batch_ms, len(chunk)))
+        results = []
+        for result in payload["results"]:
+            result = dict(result)
+            result["_cached"] = was_cached
+            result["_tier"] = self.tier
+            result["_batch_ms"] = batch_ms
+            results.append(result)
+        self.classifications += len(results)
+        return results
 
     def stats(self):
         batches = {ms: n for ms, n in self.observed}  # dedupe identical cached batches

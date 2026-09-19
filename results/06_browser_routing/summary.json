@@ -1,0 +1,188 @@
+{
+  "calibration": [
+    {
+      "accuracy": 0.2037037037037037,
+      "confidence_bucket": "[0.0, 0.5)",
+      "n": 54
+    },
+    {
+      "accuracy": 0.16129032258064516,
+      "confidence_bucket": "[0.5, 0.7)",
+      "n": 93
+    },
+    {
+      "accuracy": 0.9617486338797814,
+      "confidence_bucket": "[0.7, 0.9)",
+      "n": 183
+    },
+    {
+      "accuracy": 1.0,
+      "confidence_bucket": "[0.9, 1.01)",
+      "n": 70
+    }
+  ],
+  "classifier": {
+    "batch_latency": {
+      "max_ms": 18021.703959006118,
+      "mean_ms": 14075.261642857056,
+      "n": 7,
+      "p50_ms": 14507.20158299373,
+      "p95_ms": 17535.102346506028
+    },
+    "cache_entries": 8,
+    "cache_hits": 0,
+    "classifications": 400,
+    "distinct_batches": 7,
+    "failures": 0,
+    "ms_per_item_amortised": 246.31707874999847,
+    "requests": 7,
+    "tier": "smart"
+  },
+  "data": {
+    "decisions_instrument_excluded": 299,
+    "decisions_real_work": 647,
+    "decisions_scored": 400,
+    "mode": "offline replay of recorded traces; no live browser runs",
+    "sampled": true,
+    "tasks": {
+      "allbirds-uk-add-to-cart-tag-check": 111,
+      "chanel-gb-pdp-tag-inspection": 34,
+      "chanel-gb-tag-check": 46,
+      "gymshark-uk-add-to-cart-tag-check": 119,
+      "porsche-uk-script-inventory": 18,
+      "porsche-uk-tag-inspection": 25,
+      "puma-uk-script-inventory": 26,
+      "puma-uk-seo-metadata-audit": 27,
+      "puma-uk-tag-inspection": 25,
+      "rajeevg-crawlability-audit": 27,
+      "rajeevg-seo-metadata-audit": 23,
+      "tldraw-three-shape-diagram": 112
+    },
+    "traces": 116
+  },
+  "glm": {
+    "cache_hits": 8,
+    "completion_tokens": 15565,
+    "cost_usd_from_snapshot": 0.006733,
+    "cost_usd_from_usage": 0.010456,
+    "failures": 5,
+    "latency": {
+      "max_ms": 23917.591792007443,
+      "mean_ms": 6609.884852750595,
+      "n": 60,
+      "p50_ms": 4849.559270500322,
+      "p95_ms": 17397.360166061113
+    },
+    "latency_cold_only": {
+      "max_ms": 23917.591792007443,
+      "mean_ms": 7111.150403058184,
+      "n": 52,
+      "p50_ms": 5727.551604002656,
+      "p95_ms": 18150.89116645758
+    },
+    "model": "z-ai/glm-5.3-flash",
+    "prompt_tokens": 22928,
+    "requests": 52
+  },
+  "label_distribution": {
+    "click": 40,
+    "done": 4,
+    "inspect": 346,
+    "navigate": 1,
+    "press": 6,
+    "type": 2,
+    "wait": 1
+  },
+  "methods": {
+    "classifier_dev_smart": {
+      "escalated_fraction": 0.0,
+      "escalated_to_reasoning": 0,
+      "top1_accuracy": 0.68
+    },
+    "glm_5_3_flash_sample": {
+      "mean_prompt_tokens": 358.6222222222222,
+      "parsed": 45,
+      "sample_size": 60,
+      "top1_accuracy": 0.6888888888888889
+    },
+    "majority_baseline": {
+      "majority": "inspect",
+      "top1_accuracy": 0.865
+    }
+  },
+  "per_label_recall": {
+    "click": {
+      "n": 40,
+      "recall": 0.65
+    },
+    "done": {
+      "n": 4,
+      "recall": 0.5
+    },
+    "inspect": {
+      "n": 346,
+      "recall": 0.6965317919075145
+    },
+    "navigate": {
+      "n": 1,
+      "recall": 0.0
+    },
+    "press": {
+      "n": 6,
+      "recall": 0.5
+    },
+    "type": {
+      "n": 2,
+      "recall": 0.0
+    },
+    "wait": {
+      "n": 1,
+      "recall": 0.0
+    }
+  },
+  "test": "06_browser_routing",
+  "threshold_curve": [
+    {
+      "auto_accuracy": 0.68,
+      "auto_n": 400,
+      "coverage": 1.0,
+      "threshold": 0.0
+    },
+    {
+      "auto_accuracy": 0.7543352601156069,
+      "auto_n": 346,
+      "coverage": 0.865,
+      "threshold": 0.5
+    },
+    {
+      "auto_accuracy": 0.8448844884488449,
+      "auto_n": 303,
+      "coverage": 0.7575,
+      "threshold": 0.6
+    },
+    {
+      "auto_accuracy": 0.9723320158102767,
+      "auto_n": 253,
+      "coverage": 0.6325,
+      "threshold": 0.7
+    },
+    {
+      "auto_accuracy": 0.9946236559139785,
+      "auto_n": 186,
+      "coverage": 0.465,
+      "threshold": 0.8
+    },
+    {
+      "auto_accuracy": 1.0,
+      "auto_n": 70,
+      "coverage": 0.175,
+      "threshold": 0.9
+    },
+    {
+      "auto_accuracy": 1.0,
+      "auto_n": 16,
+      "coverage": 0.04,
+      "threshold": 0.95
+    }
+  ]
+}

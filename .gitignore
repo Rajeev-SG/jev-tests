@@ -8,6 +8,8 @@ __pycache__/
 # names and tool output. The extractor scripts are committed; the samples are
 # not. Aggregate results (summary.json, CSVs) are committed.
 data/sessions/*.jsonl
+data/context/*.jsonl
+data/prs/*.jsonl
 
 # Third-party API responses. Cached so re-runs are free and reproducible;
 # never committed.
