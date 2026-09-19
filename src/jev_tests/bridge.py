@@ -198,6 +198,16 @@ class BridgeBrowser:
                 pass
             time.sleep(0.05)
 
+        reset_js = os.environ.get("JEV_RESET_JS")
+        if reset_js:
+            self.evaluate(reset_js)
+            self.transport.navigate(url)
+            deadline = time.monotonic() + 15
+            while time.monotonic() < deadline:
+                if self.evaluate("document.readyState") == "complete":
+                    break
+                time.sleep(0.05)
+
     def evaluate(self, expression: str) -> Any:
         return self.transport.evaluate(expression)
 
