@@ -2,6 +2,39 @@
 
 Cheap, empirical tests of Jev / classifier.dev against Rajeev's real workloads.
 
+## Plain-English answer: did the browser fast path work, and does it help?
+
+**Did it work? Yes — the plumbing works.** Jev can now drive your real Chrome
+instead of a throwaway browser: it picks a button or field it can actually see
+on the page, and the code turns that choice into a real click or type. We tested
+this live on this Mac against both routes (Playwriter and Browser Relay): page
+loading, reading the page, clicking, typing and scrolling all worked, and if the
+page moves underneath it, Jev refuses to act on the stale target instead of
+clicking the wrong thing.
+
+**Did it make browser automation better? We do not know yet, and we will not
+pretend otherwise.** Jev's decision-making calls a paid service called TypeSafe,
+and this Mac has no TypeSafe key, so the scored head-to-head test could not run.
+Until that test runs, there is no measured speed or success improvement to claim.
+
+**Can it improve browser automation? Possibly, on narrow repetitive work — but
+two things block it today:**
+
+1. **No TypeSafe key on this Mac.** Without it, Jev cannot make a single
+   decision, so nothing downstream can be measured. Fix: supply a key, or point
+   Jev at classifier.dev (the free route the earlier tests already used).
+2. **Jev cannot tick a checkbox on the standard test page (TodoMVC).** The
+   per-item "complete" box is invisible to the eye (`opacity: 0`) but clickable
+   for a human, so Jev's "only act on things I can see" rule drops it. On top of
+   the already-known limitation that Jev has no Enter key, this means the
+   standard test cannot be finished by Jev as-is. Both are recorded as findings,
+   not hidden.
+
+**So, today:** the bridge is real, tested and safe to reuse; the "does Jev speed
+up browser work?" question is still open, and the next step is a TypeSafe key
+(or the classifier.dev wiring) plus a task that Jev's action space can actually
+complete. Details: [results/browser-fastpath/README.md](results/browser-fastpath/README.md).
+
 ## Question
 
 Where should a fast decision model replace or gate ordinary LLM calls in Rajeev's coding-agent and intelligence pipelines?
@@ -46,6 +79,7 @@ in `results/<test>/README.md`.
 | 4 | #5 | PR review gate | 102 real PRs x 5 repos | Does this change need expensive review? | not proven |
 | 5 | #6 | Retrieval relevance gate | local Recoll index + session ground truth | Which retrieved chunks enter context? | blocked |
 | 6 | #7 | Browser next-action routing | 946 recorded microbench decisions | Which browser action runs next? | use as gate |
+| 7 | #9 | Jev fast path over Playwriter / Browser Relay | live Chrome, real microbench tasks | Can Jev drive your own browser instead of leaning on the model? | plumbing works; benefit unmeasured (no TypeSafe key) |
 
 ## How to run
 
