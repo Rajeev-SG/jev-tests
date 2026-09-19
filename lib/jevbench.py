@@ -241,6 +241,11 @@ class ClassifierDev:
             was_cached = False
         batch_ms = payload.get("_measured_batch_ms", 0.0)
         self.observed.append((batch_ms, len(chunk)))
+        if len(payload["results"]) != len(chunk):
+            raise RuntimeError(
+                f"classifier.dev returned {len(payload['results'])} results for "
+                f"{len(chunk)} inputs; results are documented as input-ordered, so "
+                f"a mismatch means the alignment assumption no longer holds")
         results = []
         for result in payload["results"]:
             result = dict(result)
@@ -313,6 +318,9 @@ class GLM:
         self.reported_cost = 0.0
         self.latencies: list[float] = []
         self.seen_latencies: list[float] = []
+        self.cached_cost = 0.0
+        self.cached_prompt_tokens = 0
+        self.cached_completion_tokens = 0
         self._key = None
 
     def _api_key(self):
@@ -340,6 +348,10 @@ class GLM:
         if cached is not None and not (not cached.get("text") and cached.get("finish_reason") == "length"):
             self.cache_hits += 1
             self.seen_latencies.append(cached.get("elapsed_ms", 0.0))
+            # keep the originally measured spend visible on a cached rerun
+            self.cached_cost += float(cached.get("cost_usd") or 0.0)
+            self.cached_prompt_tokens += cached.get("prompt_tokens", 0)
+            self.cached_completion_tokens += cached.get("completion_tokens", 0)
             return cached
         req = urllib.request.Request(
             self.ENDPOINT,
@@ -420,6 +432,11 @@ class GLM:
             "completion_tokens": self.completion_tokens,
             "cost_usd_from_usage": round(self.reported_cost, 6),
             "cost_usd_from_snapshot": round(computed, 6),
+            "tokens_including_cache": {
+                "prompt": self.prompt_tokens + self.cached_prompt_tokens,
+                "completion": self.completion_tokens + self.cached_completion_tokens,
+            },
+            "cost_usd_including_cache": round(self.reported_cost + self.cached_cost, 6),
             "latency": latency_summary(self.seen_latencies),
             "latency_cold_only": latency_summary(self.latencies),
         }
@@ -469,6 +486,21 @@ def binary_metrics(y_true, y_pred, positive=1):
     }
 
 
+def _check_alignment(confidences, correct):
+    """Fail loudly on misaligned inputs instead of emitting a garbage curve.
+
+    A silent off-by-one between a classifier result list and the truth list is
+    exactly the kind of bug that would fake a headline accuracy number, so this
+    is an assertion rather than a warning.
+    """
+    if len(confidences) != len(correct):
+        raise ValueError(
+            f"confidences and correct must be aligned: {len(confidences)} vs {len(correct)}")
+    for index, value in enumerate(confidences):
+        if value is not None and not isinstance(value, (int, float)):
+            raise TypeError(f"confidence at {index} is {type(value).__name__}, expected float or None")
+
+
 def coverage_curve(confidences, correct, thresholds):
     """Auto-decision coverage and accuracy when only confident answers are auto-taken.
 
@@ -477,6 +509,7 @@ def coverage_curve(confidences, correct, thresholds):
     this curve answers "at what threshold does Jev stay >= X% accurate, and
     what fraction of decisions can it cover by itself?".
     """
+    _check_alignment(confidences, correct)
     rows = []
     total = len(confidences)
     for threshold in thresholds:
@@ -496,6 +529,7 @@ def coverage_curve(confidences, correct, thresholds):
 
 
 def calibration_table(confidences, correct, buckets=((0.0, 0.5), (0.5, 0.7), (0.7, 0.9), (0.9, 1.01))):
+    _check_alignment(confidences, correct)
     rows = []
     for low, high in buckets:
         picked = [i for i, c in enumerate(confidences) if c is not None and low <= c < high]

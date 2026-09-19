@@ -29,7 +29,7 @@
       "p50_ms": null,
       "p95_ms": null
     },
-    "cache_entries": 36,
+    "cache_entries": 40,
     "cache_hits": 0,
     "classifications": 0,
     "distinct_batches": 0,
@@ -157,11 +157,12 @@
     }
   ],
   "glm": {
-    "cache_hits": 0,
-    "completion_tokens": 29261,
-    "cost_usd_from_snapshot": 0.012034,
-    "cost_usd_from_usage": 0.018727,
-    "failures": 12,
+    "cache_hits": 90,
+    "completion_tokens": 0,
+    "cost_usd_from_snapshot": 0.0,
+    "cost_usd_from_usage": 0.0,
+    "cost_usd_including_cache": 0.018727,
+    "failures": 0,
     "latency": {
       "max_ms": 23712.938459008,
       "mean_ms": 6415.10929904406,
@@ -170,15 +171,19 @@
       "p95_ms": 14372.362831095228
     },
     "latency_cold_only": {
-      "max_ms": 23712.938459008,
-      "mean_ms": 6415.10929904406,
-      "n": 90,
-      "p50_ms": 5259.43933299277,
-      "p95_ms": 14372.362831095228
+      "max_ms": null,
+      "mean_ms": null,
+      "n": 0,
+      "p50_ms": null,
+      "p95_ms": null
     },
     "model": "z-ai/glm-5.3-flash",
-    "prompt_tokens": 36171,
-    "requests": 90
+    "prompt_tokens": 0,
+    "requests": 0,
+    "tokens_including_cache": {
+      "completion": 29261,
+      "prompt": 36171
+    }
   },
   "glm_vs_jev": {
     "agreement": 0.43333333333333335

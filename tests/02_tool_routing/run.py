@@ -240,6 +240,9 @@ def main() -> int:
         fast = cached_results
     else:
         fast = fast_client.classify(states, LABELS, instructions=INSTRUCTIONS)
+    if len(fast) != len(rows):
+        raise RuntimeError(f"classifier results ({len(fast)}) are not aligned with "
+                           f"decisions ({len(rows)})")
     fast_pred = [FAMILY_ALIAS.get(LABEL_TO_FAMILY.get(r["label"], r["label"]),
                                  LABEL_TO_FAMILY.get(r["label"], r["label"])) for r in fast]
     fast_conf = [r["confidence"] for r in fast]
@@ -253,6 +256,9 @@ def main() -> int:
         unsure = [i for i, c in enumerate(fast_conf) if c is None or c < args.smarten]
         smart_client = jb.ClassifierDev(tier="smart", use_cache=use_cache)
         escalated = smart_client.classify([states[i] for i in unsure], LABELS, instructions=INSTRUCTIONS)
+        if len(escalated) != len(unsure):
+            raise RuntimeError(f"smart escalation returned {len(escalated)} results for "
+                               f"{len(unsure)} unsure decisions")
         for index, result in zip(unsure, escalated):
             gated_pred[index] = FAMILY_ALIAS.get(
                 LABEL_TO_FAMILY.get(result["label"], result["label"]),

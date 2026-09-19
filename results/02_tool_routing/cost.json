@@ -4,25 +4,22 @@
   "expensive_llm_calls_avoided": 1265,
   "illustrative_direct_jev_cost_usd": 0.022913,
   "illustrative_glm_cost_usd": {
-    "for_this_workload": 0.1691,
-    "per_1k_decisions": 0.1337,
-    "per_decision": 0.000134
+    "for_this_workload": 0.129,
+    "per_1k_decisions": 0.102,
+    "per_decision": 0.000102
   },
   "llm_latency": {
-    "max_ms": 23712.938459008,
-    "mean_ms": 6415.10929904406,
-    "n": 90,
-    "p50_ms": 5259.43933299277,
-    "p95_ms": 14372.362831095228
+    "p50_ms": null,
+    "p95_ms": null
   },
   "measured_cost_usd": {
     "classifier_dev": 0.0,
-    "glm_sample": 0.018727
+    "glm_sample": 0.0
   },
   "note": "Jev replaces one LLM reasoning turn per decision; the LLM figures are illustrative from the measured sample mean.",
   "per_decision_llm_tokens": {
     "basis": "measured mean of the GLM-5.3-Flash sample",
-    "completion": 325.1222222222222,
-    "prompt": 401.9
+    "completion": 250.0,
+    "prompt": 300.0
   }
 }
