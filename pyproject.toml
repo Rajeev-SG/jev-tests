@@ -9,6 +9,7 @@ dependencies = [
 
 [project.scripts]
 jev-fastpath = "jev_tests.run:main"
+jev-microbench = "jev_tests.microbench:main"
 
 [build-system]
 requires = ["hatchling"]
