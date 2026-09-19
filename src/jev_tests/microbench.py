@@ -71,6 +71,9 @@ def run_one(root: Path, task_id: str, rep: str, backend: str, fill_enter: bool) 
     else:
         os.environ.pop("JEV_RESET_JS", None)
 
+    # Swap only the browser constructor. Always restore the upstream class so one
+    # condition cannot leak its patch into the next (module-level global mutation).
+    previous_browser = jev_agent.Browser
     if backend == "browser-harness":
         class BenchmarkUpstreamBrowser(UPSTREAM_BROWSER):
             def __init__(self, url: str):
@@ -128,6 +131,10 @@ def run_one(root: Path, task_id: str, rep: str, backend: str, fill_enter: bool) 
             "decisions": [],
             "text_call_details": [],
         }
+    finally:
+        # Restore the third-party global even if the run raised, so the next
+        # condition or the next in-process call starts from the real upstream.
+        jev_agent.Browser = previous_browser
 
     result.update(
         {

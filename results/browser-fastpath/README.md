@@ -73,3 +73,23 @@ Focused tests for every bug above and for the observed-node contract live in
 
 Screening matrix with 2 reps per row, promotion to 5 for plausible frontier rows,
 and the measured metrics listed in `docs/browser-fastpath.md`.
+
+## Repair pass (merge-guard findings)
+
+Two review findings were fixed in a single repair pass:
+
+- **F1 (correctness):** the browser-harness control monkey-patched
+  `jev_agent.Browser` at module level without restoring it, and `run.py` did the
+  same permanently. `microbench.run_one` now captures the previous class and
+  restores it in a `finally`; `run.py` restores in a `finally` too, so one
+  condition cannot leak its patch into the next.
+- **F2 (efficiency):** `observe()`/`fresh()` re-ran the full `snapshot.js` (which
+  serialises the whole page) just to answer a freshness check, biasing the very
+  latency metric the PR measures. `observe()` now also records a small
+  `LITE_MARKER` identity tuple and `fresh()` compares that; `fill` now uses the
+  per-node guard like `click`/`select`. Safety is unchanged because `act()`
+  still re-validates the exact observed node immediately before input. Measured
+  effect on the relay TodoMVC run: wall time fell from ~13.9 s to ~3.8 s.
+
+Regression tests: `tests/test_browser_fastpath.py` (`TestBrowserPatchRestore`,
+`TestFreshnessProbe`).

@@ -3,7 +3,7 @@
   "backend": "browser-relay",
   "fill_enter_compat": true,
   "pass": false,
-  "wall_s": 4.711,
+  "wall_s": 3.803,
   "jev_decisions": 3,
   "actions": 2,
   "text_calls": 2,

@@ -22,8 +22,17 @@ def _p95(values: list[float]) -> float | None:
 
 def run(url: str, goal: str) -> dict:
     # Preserve upstream Agent/model/text logic; replace browser execution only.
+    # Restore the upstream class afterwards so this is not a permanent global patch.
+    previous_browser = jev_agent.Browser
     jev_agent.Browser = BridgeBrowser
     started = time.perf_counter()
+    try:
+        return _run_agent(url, goal, started)
+    finally:
+        jev_agent.Browser = previous_browser
+
+
+def _run_agent(url: str, goal: str, started: float) -> dict:
     with jev_agent.Agent(url, goal, screenshots=False) as agent:
         last = None
         for last in agent.run():

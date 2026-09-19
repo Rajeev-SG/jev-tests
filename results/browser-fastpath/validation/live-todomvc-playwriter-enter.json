@@ -3,7 +3,7 @@
   "backend": "playwriter",
   "fill_enter_compat": true,
   "pass": false,
-  "wall_s": 3.725,
+  "wall_s": 4.037,
   "jev_decisions": 3,
   "actions": 2,
   "text_calls": 2,

@@ -22,6 +22,16 @@ from jev_ultrafast.browser import StalePage
 
 READ_STATE = Path(jev_ultrafast.__file__).with_name("snapshot.js").read_text()
 MARKER = f"(() => {{ const state={READ_STATE}; return state?.marker ?? null; }})()"
+# Cheap page-identity probe. The full MARKER above re-serialises the whole page
+# (text, actions, scroll) just to compare freshness, which inflates per-decision
+# latency on content-heavy pages. Safety is preserved because act() re-validates
+# the exact observed node (isConnected / visibility / hit-test) immediately
+# before input; a coarse pre-check cannot cause an unsafe action.
+LITE_MARKER = (
+    "(() => [performance.timeOrigin, location.href, document.title, scrollX,"
+    " scrollY, innerWidth, innerHeight,"
+    " document.body ? document.body.childElementCount : -1])()"
+)
 
 
 def _fingerprint(state: dict[str, Any]) -> str:
@@ -223,6 +233,7 @@ class BridgeBrowser:
                 if info is None:
                     raise StalePage("Document is navigating")
                 info["fingerprint"] = _fingerprint(info)
+                info["lite_marker"] = self.evaluate(LITE_MARKER)
                 return info
             except Exception:
                 if attempt == 9:
@@ -231,7 +242,7 @@ class BridgeBrowser:
         raise StalePage("Page did not settle")
 
     def fresh(self, page: dict[str, Any], action: dict[str, Any] | None = None) -> bool:
-        if action is not None and action.get("kind") in {"click", "select"}:
+        if action is not None and action.get("kind") in {"click", "select", "fill"}:
             node = action.get("node")
             if not isinstance(node, int):
                 return False
@@ -240,6 +251,8 @@ class BridgeBrowser:
                 f"return c ? [c.pageKey(),c.guard(c.nodes.get({node}))] : null; }})()"
             )
             return current == [page["page_key"], page["guards"].get(str(node))]
+        if "lite_marker" in page:
+            return self.evaluate(LITE_MARKER) == page["lite_marker"]
         return self.evaluate(MARKER) == page["marker"]
 
     def _stamp_target(self, action: dict[str, Any]) -> str:
