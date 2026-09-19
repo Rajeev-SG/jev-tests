@@ -1,0 +1,37 @@
+{
+  "snapshot_version": "2026-09-19",
+  "note": "All benchmark cost maths in this repo loads this file. Update it by committing a new dated snapshot, never by editing an old one.",
+  "jev": {
+    "what": "TypeSafe decision model, served as the classifier.dev 'fast' tier (model id jev-1.13.0)",
+    "direct_api_available_on_this_machine": false,
+    "direct_api_note": "Direct Jev needs a TypeSafe key. No key is present on Rajeev's machine, so every Jev measurement in this repo goes through the public classifier.dev endpoint and is reported as classifier.dev(fast).",
+    "input_per_mtok_usd": 0.042,
+    "output_per_mtok_usd": 0.0,
+    "source": "jev-tests README reference price at repo creation; classifier.dev/benchmark quotes about $0.005 per 1k items for calling Jev directly"
+  },
+  "classifier_dev": {
+    "what": "Public zero-shot classification HTTP API in front of Jev",
+    "fast_per_classification_usd": 0.0,
+    "smart_escalation_per_item_usd": 0.0007,
+    "fast_tier_limits_per_ip": "3000 classifications/minute, 20000/day",
+    "smart_tier_limits_per_ip": "200 classifications/minute, 2000/day",
+    "smart_note": "smart = Jev, then a reasoning model (gemini-3.8-flash) re-asks only answers under 0.7 confidence",
+    "source": "https://classifier.dev/llms.txt and https://classifier.dev/benchmark, read 2026-09-19"
+  },
+  "llm": {
+    "glm_5_3_flash": {
+      "model_id": "z-ai/glm-5.3-flash",
+      "provider": "openrouter",
+      "input_per_mtok_usd": 0.09,
+      "output_per_mtok_usd": 0.30,
+      "input_cache_read_per_mtok_usd": 0.018,
+      "source": "https://openrouter.ai/api/v1/models, read 2026-09-19",
+      "note": "The jev-tests README reference figure at repo creation was $0.075 in / $0.25 out. Live OpenRouter pricing on the run date is $0.09 in / $0.30 out; this snapshot uses the live figure and every result records it."
+    }
+  },
+  "adpi_semantic_extraction": {
+    "what": "The expensive downstream step Test 1 is trying to protect",
+    "model_id": "z-ai/glm-5.3-flash",
+    "note": "ad-platform-intelligence runs semantic extraction/synthesis with a GLM-class model over cleaned documents; cost is measured there from OpenRouter usage, so the same per-token prices apply."
+  }
+}

@@ -1,0 +1,395 @@
+{
+  "classifier_dev_fast": {
+    "batch_latency": {
+      "max_ms": null,
+      "mean_ms": null,
+      "n": 0,
+      "p50_ms": null,
+      "p95_ms": null
+    },
+    "batch_latency_historical_from_cache": {
+      "max_ms": 37573.51004099473,
+      "mean_ms": 22615.58763537323,
+      "n": 8,
+      "p50_ms": 28373.897771001793,
+      "p95_ms": 36116.93122884826
+    },
+    "cache_entries": 24,
+    "cache_hits": 8,
+    "classifications": 309,
+    "cold_batches_measured": 0,
+    "distinct_batches": 0,
+    "distinct_batches_historical": 8,
+    "failures": 0,
+    "historical_meaning": "cold measurements recorded by the run that first made those calls; not this run",
+    "latency_meaning": "cold network calls made in this process only; cache hits contribute none",
+    "ms_per_item_amortised": null,
+    "ms_per_item_amortised_historical": 585.5168319837729,
+    "requests": 0,
+    "tier": "smart",
+    "warm_cache_hits_excluded_from_latency": 8
+  },
+  "context_tokens": {
+    "A_tokens": 59130,
+    "B_tokens": 59130,
+    "C_tokens": 58620,
+    "chunks": 309,
+    "dropped": 0,
+    "kept": 309,
+    "truncated": 0,
+    "window_tokens": 59051
+  },
+  "data": {
+    "ground_truth": "files the session's own edit records touched and that appear in the window",
+    "scope": "first chunks of each session up to the token budget",
+    "sessions": 5,
+    "token_budget": 12000
+  },
+  "decision": "KEEP / TRUNCATE / DROP per history chunk, confidence-gated at 0.7 (uncertain -> KEEP)",
+  "glm": {
+    "cache_hits": 15,
+    "cold_calls_recorded_from_cache": 15,
+    "completion_tokens": 0,
+    "cost_usd_from_snapshot": 0.0,
+    "cost_usd_from_usage": 0.0,
+    "cost_usd_including_cache": 0.038388,
+    "failures": 0,
+    "latency": {
+      "max_ms": null,
+      "mean_ms": null,
+      "n": 0,
+      "p50_ms": null,
+      "p95_ms": null
+    },
+    "latency_cold_only": {
+      "max_ms": null,
+      "mean_ms": null,
+      "n": 0,
+      "p50_ms": null,
+      "p95_ms": null
+    },
+    "latency_historical_from_cache": {
+      "max_ms": 31281.819208001252,
+      "mean_ms": 16353.885791598199,
+      "n": 15,
+      "p50_ms": 8188.08608299878,
+      "p95_ms": 31281.819208001252
+    },
+    "latency_historical_meaning": "cold measurements recorded by the run that first made those calls; not this run.",
+    "latency_meaning": "cold calls made in this process only. Cache hits contribute no latency, and measurements recorded by an earlier run are reported separately under latency_historical_from_cache rather than mixed into this figure.",
+    "model": "z-ai/glm-5.3-flash",
+    "prompt_tokens": 0,
+    "requests": 0,
+    "tokens_including_cache": {
+      "completion": 16687,
+      "prompt": 212648
+    },
+    "warm_cache_hits_excluded_from_latency": 15
+  },
+  "per_session": [
+    {
+      "chunks_in_window": 70,
+      "confident_fraction": 0.0,
+      "decisions": {
+        "drop as no longer useful": 0,
+        "keep in full": 70,
+        "truncate to one line": 0
+      },
+      "ground_truth_paths": [
+        "1]",
+        "2",
+        "220"
+      ],
+      "raw_drop_share": 0.22857142857142856,
+      "replay": {
+        "A": {
+          "completion_tokens": 1959,
+          "cost_usd": 0.003226014,
+          "elapsed_ms": 29425.326083000982,
+          "paths_said": 8,
+          "prompt_tokens": 15194,
+          "recall": 0.0
+        },
+        "B": {
+          "completion_tokens": 1959,
+          "cost_usd": 0.003226014,
+          "elapsed_ms": 29425.326083000982,
+          "paths_said": 8,
+          "prompt_tokens": 15194,
+          "recall": 0.0
+        },
+        "C": {
+          "completion_tokens": 1959,
+          "cost_usd": 0.003226014,
+          "elapsed_ms": 29425.326083000982,
+          "paths_said": 8,
+          "prompt_tokens": 15194,
+          "recall": 0.0
+        }
+      },
+      "session_id": "0f1d744ee9bd842d9733c854799c1a7a18a9536eed5443d64b74f8a0a4fbc78c",
+      "source": "codex",
+      "title": "/goal Read the Codex goal objective file at /Users/rajeev/.codex/attachments/8c15970a-a5f6-40c1-8aaf-db9356d75f66/goal-objective.md before continuing.",
+      "tokens": {
+        "A_full": 12044,
+        "B_jev_pruned": 12044,
+        "C_recency": 12044
+      },
+      "window_tokens": 11963
+    },
+    {
+      "chunks_in_window": 70,
+      "confident_fraction": 0.0,
+      "decisions": {
+        "drop as no longer useful": 0,
+        "keep in full": 70,
+        "truncate to one line": 0
+      },
+      "ground_truth_paths": [
+        "1",
+        "=0",
+        "{"
+      ],
+      "raw_drop_share": 0.2714285714285714,
+      "replay": {
+        "A": {
+          "completion_tokens": 2231,
+          "cost_usd": 0.003196396962,
+          "elapsed_ms": 31281.819208001252,
+          "paths_said": 5,
+          "prompt_tokens": 15513,
+          "recall": 0.0
+        },
+        "B": {
+          "completion_tokens": 2231,
+          "cost_usd": 0.003196396962,
+          "elapsed_ms": 31281.819208001252,
+          "paths_said": 5,
+          "prompt_tokens": 15513,
+          "recall": 0.0
+        },
+        "C": {
+          "completion_tokens": 2231,
+          "cost_usd": 0.003196396962,
+          "elapsed_ms": 31281.819208001252,
+          "paths_said": 5,
+          "prompt_tokens": 15513,
+          "recall": 0.0
+        }
+      },
+      "session_id": "19028c525eeec186a1daad7aeaaf3328d0933abf8f250f24d7d759c4572c9372",
+      "source": "codex",
+      "title": "use chrome cdp mcp Server running at: 127.0.0.1:9222 to confirm which markets with zero scores (as per the attached pdf) for performance and institutional search have responded to my emails\n\nthen give me an xlsx table of any market with a total performance or institutional search score of <80, the table should tell me at a glance which markets are below 80 total, which scores are zero for that market, and whether that market has responded to my previous emails (I think most have but US/UK have not)",
+      "tokens": {
+        "A_full": 11884,
+        "B_jev_pruned": 11884,
+        "C_recency": 11884
+      },
+      "window_tokens": 11805
+    },
+    {
+      "chunks_in_window": 65,
+      "confident_fraction": 0.03076923076923077,
+      "decisions": {
+        "drop as no longer useful": 0,
+        "keep in full": 65,
+        "truncate to one line": 0
+      },
+      "ground_truth_paths": [
+        "(s",
+        "({",
+        "({action:f.action,",
+        "({tag:el.tagName,",
+        ")",
+        "))",
+        "0,",
+        "1",
+        "</html>",
+        "=",
+        "a.href),",
+        "el.innerText.trim()).filter(Boolean),",
+        "links",
+        "location.href",
+        "node.textContent?.replace(/\\s+/g,",
+        "s",
+        "s.src",
+        "s.toLowerCase().replace(/[^a-z0-9]+/g,",
+        "state",
+        "{"
+      ],
+      "raw_drop_share": 0.2153846153846154,
+      "replay": {
+        "A": {
+          "completion_tokens": 340,
+          "cost_usd": 0.00223125309,
+          "elapsed_ms": 6784.745041994029,
+          "paths_said": 0,
+          "prompt_tokens": 14851,
+          "recall": 0.0
+        },
+        "B": {
+          "completion_tokens": 340,
+          "cost_usd": 0.00223125309,
+          "elapsed_ms": 6784.745041994029,
+          "paths_said": 0,
+          "prompt_tokens": 14851,
+          "recall": 0.0
+        },
+        "C": {
+          "completion_tokens": 340,
+          "cost_usd": 0.00223125309,
+          "elapsed_ms": 6784.745041994029,
+          "paths_said": 0,
+          "prompt_tokens": 14851,
+          "recall": 0.0
+        }
+      },
+      "session_id": "7b8e1af9ff91788ffede0d5efb453081c87221224efd0cc5514c3d3d8f12f040",
+      "source": "codex",
+      "title": "Do some research into the site structure of https://www.linkedin.com/ad-library/home, https://library.tiktok.com/ads, https://www.facebook.com/ads/library/, https://adstransparency.google.com/?region=GB\n\nUse playwright, and whichever other tools to deeply navigate each of the sites and understand exactly how they are structured, for scraping",
+      "tokens": {
+        "A_full": 11892,
+        "B_jev_pruned": 11892,
+        "C_recency": 11892
+      },
+      "window_tokens": 11811
+    },
+    {
+      "chunks_in_window": 52,
+      "confident_fraction": 0.11538461538461539,
+      "decisions": {
+        "drop as no longer useful": 0,
+        "keep in full": 52,
+        "truncate to one line": 0
+      },
+      "ground_truth_paths": [
+        "0",
+        "2",
+        "visible",
+        "{"
+      ],
+      "raw_drop_share": 0.19230769230769232,
+      "replay": {
+        "A": {
+          "completion_tokens": 526,
+          "cost_usd": 0.0022530915,
+          "elapsed_ms": 5961.140708997846,
+          "paths_said": 0,
+          "prompt_tokens": 13419,
+          "recall": 0.0
+        },
+        "B": {
+          "completion_tokens": 526,
+          "cost_usd": 0.0022530915,
+          "elapsed_ms": 5961.140708997846,
+          "paths_said": 0,
+          "prompt_tokens": 13419,
+          "recall": 0.0
+        },
+        "C": {
+          "completion_tokens": 632,
+          "cost_usd": 0.0022007205,
+          "elapsed_ms": 6346.076207992155,
+          "paths_said": 0,
+          "prompt_tokens": 12713,
+          "recall": 0.0
+        }
+      },
+      "session_id": "ce78f48fa6863f2071b461c818af36b25f1364620a6629610a91d333942edac8",
+      "source": "codex",
+      "title": "lets turn this automation-reports front-end into a real polished properly build tool, use the relevant design workflows/skills, stitch MCP, shadcn components - i want it to look and feel like vercel.\n\nI want properly researched optimal solutions for the rendering and viewing of logs, filesystem, rich markdown articles\n\nDeeply research UX best practices and build according to those\n\nand on a functional level, I want you to look at everything my automation system is doing and work out how we can further improve it, for example there is a lot of really useful data being produced by these automations, how can feed the outputs of some of these automations into other automations so that we can have the flawless, ultimate self-improving, agentic software delivery system\n\nmake sure this is all researched, fully delivered, no partials, i want evidence that you have built the ultimate rig, start now dont stop until complete",
+      "tokens": {
+        "A_full": 11595,
+        "B_jev_pruned": 11595,
+        "C_recency": 11085
+      },
+      "window_tokens": 11815
+    },
+    {
+      "chunks_in_window": 52,
+      "confident_fraction": 0.019230769230769232,
+      "decisions": {
+        "drop as no longer useful": 0,
+        "keep in full": 52,
+        "truncate to one line": 0
+      },
+      "ground_truth_paths": [
+        ",",
+        "0",
+        "60",
+        "=",
+        "{"
+      ],
+      "raw_drop_share": 0.2692307692307692,
+      "replay": {
+        "A": {
+          "completion_tokens": 471,
+          "cost_usd": 0.001906771482,
+          "elapsed_ms": 8188.08608299878,
+          "paths_said": 0,
+          "prompt_tokens": 12141,
+          "recall": 0.0
+        },
+        "B": {
+          "completion_tokens": 471,
+          "cost_usd": 0.001906771482,
+          "elapsed_ms": 8188.08608299878,
+          "paths_said": 0,
+          "prompt_tokens": 12141,
+          "recall": 0.0
+        },
+        "C": {
+          "completion_tokens": 471,
+          "cost_usd": 0.001906771482,
+          "elapsed_ms": 8188.08608299878,
+          "paths_said": 0,
+          "prompt_tokens": 12141,
+          "recall": 0.0
+        }
+      },
+      "session_id": "05de9b4c35237e76133b8406e15fbff2c93a1a64bd29021b9701d5c680daa98b",
+      "source": "codex",
+      "title": "Build a production-quality Google Apps Script + Google Sheets trafficking tool for Campaign Manager 360.\n\nGoal\n\nThe tool should take planning / trafficking input from a spreadsheet such as:\n\n/Users/rajeev/Code/cm360-taxonomy-audit-sheet/JLR - CRS - FY26 - C13 23122025 - Master File 2 - Copy.xlsx\n\nThe real user workflow may be either:\n- the user uploads/copies that workbook\u2019s relevant tab contents into a Google Sheet tab, or\n- the tool ingests the spreadsheet structure directly if that is practical and documented\n\nBased on that input, the tool should create the necessary CM360 entities required for trafficking, including at minimum:\n- campaign\n- placements\n- creatives\n- and any other required CM360 entities/links needed to make the workflow actually usable end to end\n\nThe input data may contain campaign names, placement metadata, click-through URLs, UTMs, 4th-party pixels, and other trafficking fields, we need to automate the creation/addition of as many of these as possible to CM360.\n\nCritical execution rule\n\nDo NOT jump straight into implementation.\n\nYou must first research, validate, and de-risk the workflow using current official documentation. If any important part of the workflow is uncertain, not exposed by the API, or depends on undocumented UI-only behavior, you must identify that before building.\n\nI do not want a confident but useless tool.\n\nResearch-first / proof-first workflow\n\nPhase 1: Documentation research and uncertainty register\n1. Inspect current official documentation first and use it as the only source of truth for API behavior.\n2. Validate which CM360 API version and Apps Script advanced service should be used.\n3. Validate which CM360 resources/methods are actually needed to create the end-to-end trafficking objects.\n4. Validate any uncertainty around:\n   - campaigns creation\n   - placements creation\n   - creatives creation\n   - creative assets / uploads\n   - ads / ad-creative assignment if required\n   - click tags / click-through URLs\n   - landing pages if required\n   - placement pricing / compatibility / size requirements\n   - 3rd-party and 4th-party tracking / pixels\n   - whether any spreadsheet field maps to a documented API field\n   - whether any required UI concept is NOT exposed by the API\n5. Produce an explicit uncertainty register:\n   - confirmed\n   - partially confirmed\n   - not confirmed\n   - impossible / UI-only / unsupported\n6. If an important requirement cannot be confirmed from official docs, do not guess. Design the tool around the confirmed subset and document the limitation clearly.\n\nPhase 2: Input model and feasibility design\n1. Inspect the provided workbook structure and infer the likely trafficking model from the actual sheet data.\n2. Identify which columns map to:\n   - campaign-level fields\n   - placement-level fields\n   - creative-level fields\n   - shared metadata\n   - optional vs required inputs\n3. Design a normalization layer so the sheet can tolerate messy planner input while still validating required CM360 fields.\n4. Create a field mapping table:\n   - input column\n   - normalized field\n   - CM360 resource\n   - CM360 API field\n   - required/optional\n   - validation rules\n   - whether the mapping is direct or inferred\n5. If the source workbook has multiple possible interpretations, validate them before implementation.\n\nPhase 3: Build a narrow proof before broadening\nBefore building the full tool, first prove a small but real vertical slice:\n- read one valid input row or a tiny fixture sheet\n- validate it\n- generate a dry-run trafficking plan\n- if the API supports it and a safe dev setup exists, create a single campaign / placement / creative path in a controlled dev context\n\nOnly after that proof works should you expand to the full UX and broader automation.\n\nTechnical constraints\n\nApps Script / CM360\n- Prefer current CM360 API documentation as implementation authority.\n- Prefer Apps Script advanced services if they are sufficient and documented.\n- If the advanced service is insufficient for an essential requirement, you may use UrlFetchApp, but only after proving from official docs why it is necessary.\n- Do not guess field names.\n- Do not invent entity relationships.\n- Do not assume UI behavior implies API support.\n\nFiles\nDeliver the implementation in a clean repo structure, but keep the Apps Script source practical and maintainable.\nIf a Sheets-bound version is needed, also make local development pleasant and fast.\n\nDesired implementation structure\n- `Code.gs`\n- `Sidebar.html`\n- supporting local dev files only if they materially improve testing/deployment, such as:\n  - `appsscript.json`\n  - `clasp.json`\n  - local fixtures\n  - local test harness\n  - parser utilities if appropriate\n  - README\n\nUser UX\n- The user should not have to edit code.\n- The sheet should contain a `Config` tab.\n- There should be a clear import / validate / dry-run / create workflow.\n- The tool should support non-technical users.\n\nAt minimum provide menu items such as:\n- Validate Setup\n- Inspect Input Sheet\n- Validate Input Data\n- Generate Dry-Run Trafficking Plan\n- Create CM360 Campaign Package\n- Clear Output Tabs\n- Open Help / Setup Panel\n\nRequired tabs / outputs\nAt minimum include:\n- `Config`\n- `Input_Inspection`\n- `Validation_Errors`\n- `Dry_Run_Plan`\n- `Creation_Log`\n- `README`\n\nIf useful, also include normalized tabs such as:\n- `Normalized_Campaigns`\n- `Normalized_Placements`\n- `Normalized_Creatives`\n- `Asset_Uploads`\n- `Ads_To_Create`\n- `Landing_Pages_To_Create`\n\nValidation requirements\n- Validate all required CM360 fields before any creation attempt.\n- Surface row-level errors in-sheet.\n- Distinguish:\n  - blocking errors\n  - warnings\n  - inferred/defaulted values\n- If any required field is missing or ambiguous, fail early and clearly.\n- Never silently default a high-risk trafficking value.\n\nDry-run requirements\nThe tool must support a real dry-run mode that:\n- parses the input sheet\n- validates field mapping\n- shows exactly what would be created\n- identifies missing prerequisites\n- does not mutate CM360\n\nCM360 creation requirements\nOnly create what is confirmed to be supported by the documented API.\nIf the full end-to-end creation requires additional CM360 entities beyond campaign / placement / creative, include them.\nIf an API limitation prevents a complete workflow, clearly document what remains manual.\n\nTracking / pixel handling\nThis is high-risk. Before implementing:\n- verify exactly how 3rd-party / 4th-party tracking is represented in the current CM360 API\n- verify whether the relevant fields live on placements, creatives, ads, or elsewhere\n- verify whether click-throughs / landing pages / click tags require separate resources\n- if anything is not confirmed, do not fake it\n\nAutonomous testing requirement\n\nI do NOT want a workflow where I constantly:\n- paste Code.gs\n- refresh the sheet\n- click menus manually\n- rerun by hand\n\nDesign the development workflow so Codex can iterate autonomously as much as possible.\n\nYou must therefore:\n1. Set up local Apps Script development using `clasp` if possible.\n2. Keep the source in a local repo and push changes programmatically instead of requiring manual paste.\n3. Add a local fixture-driven parser/validator test flow so most iteration can happen without live CM360 calls.\n4. Add a dry-run execution path that can be tested without mutating CM360.\n5. If practical, add a standalone script mode using spreadsheet ID / sheet ID so testing does not depend on a manually bound script.\n6. Add a developer test harness that can:\n   - read the local XLSX fixture\n   - extract the relevant planner rows\n   - simulate normalization/validation\n   - emit a dry-run plan locally\n7. If live Apps Script execution can be automated via Apps Script API / `clasp run` / execution API, use that.\n8. If any part of Apps Script testing cannot be made autonomous, explain the exact remaining manual step and minimize it.\n\nImportant: optimize for the fastest reliable dev loop, not the most \u201cpure\u201d Apps Script setup.\n\nDocs to inspect first\n\nResearch the current official Google docs before coding. At minimum inspect:\n- CM360 API overview\n- CM360 REST reference root\n- current CM360 version reference\n- CM360 getting started\n- CM360 migration guide\n- CM360 release notes\n- Apps Script advanced services guide\n- Apps Script CM360 advanced service docs\n- Apps Script overview\n- any current docs for campaigns, placements, creatives, ads, landing pages, creative assets, and tracking/pixel-related resources relevant to trafficking\n\nIf a resource is mentioned in docs but its role in this workflow is unclear, investigate it before building.\n\nNon-negotiable behavior\n- Do not rely on stale blog posts or unofficial samples.\n- Do not build around undocumented fields.\n- Do not \u201cassume the UI must be in the API\u201d.\n- If a field is not documented, leave it unsupported and document the limitation.\n- Label inferred mappings clearly.\n- Keep all docs and README content in sync with the current implementation.\n\nDeliverables\n1. A researched implementation plan based on official docs\n2. An uncertainty register\n3. A field mapping model from the spreadsheet input to CM360 entities\n4. A working Apps Script tool with dry-run support\n5. A fast local dev/test workflow that minimizes manual Apps Script iteration\n6. A clear README explaining:\n   - business purpose\n   - supported input format\n   - setup\n   - auth\n   - dry-run vs create mode\n   - known limitations\n   - exactly what is direct vs inferred\n   - how autonomous/local testing works\n\nExecution style\nStart by researching and validating. Do not code first.\nOnce enough is confirmed, implement the smallest vertical slice that proves the tool can work.\nThen expand deliberately.",
+      "tokens": {
+        "A_full": 11715,
+        "B_jev_pruned": 11715,
+        "C_recency": 11715
+      },
+      "window_tokens": 11657
+    }
+  ],
+  "provenance": {
+    "note": "numbers come from cached third-party calls; a re-run is free but needs the same local inputs and the response cache unless the script can rebuild them",
+    "reason": "inputs are chunks of long local codex sessions, which contain real work paths and client names",
+    "regenerate_with": "python3 tests/03_context_pruning/extract.py (reads the local AgentSessions index)",
+    "reproducible_from_repo": false
+  },
+  "removed_fraction_B": 0.0,
+  "removed_fraction_C": 0.008625063419584023,
+  "replay_paths_said": {
+    "A": 2.6,
+    "B": 2.6,
+    "C": 2.6
+  },
+  "replay_recall": {
+    "A": {
+      "mean": 0.0,
+      "min": 0.0,
+      "n": 5,
+      "sessions_losing_any": 5
+    },
+    "B": {
+      "mean": 0.0,
+      "min": 0.0,
+      "n": 5,
+      "sessions_losing_any": 5
+    },
+    "C": {
+      "mean": 0.0,
+      "min": 0.0,
+      "n": 5,
+      "sessions_losing_any": 5
+    }
+  },
+  "test": "03_context_pruning"
+}

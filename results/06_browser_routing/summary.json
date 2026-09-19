@@ -1,0 +1,308 @@
+{
+  "calibration": [
+    {
+      "accuracy": 0.2037037037037037,
+      "confidence_bucket": "[0.0, 0.5)",
+      "n": 54
+    },
+    {
+      "accuracy": 0.16129032258064516,
+      "confidence_bucket": "[0.5, 0.7)",
+      "n": 93
+    },
+    {
+      "accuracy": 0.9617486338797814,
+      "confidence_bucket": "[0.7, 0.9)",
+      "n": 183
+    },
+    {
+      "accuracy": 1.0,
+      "confidence_bucket": "[0.9, 1.01)",
+      "n": 70
+    }
+  ],
+  "classifier": {
+    "batch_latency": {
+      "max_ms": null,
+      "mean_ms": null,
+      "n": 0,
+      "p50_ms": null,
+      "p95_ms": null
+    },
+    "batch_latency_historical_from_cache": {
+      "max_ms": 18021.703959006118,
+      "mean_ms": 14075.261642857056,
+      "n": 7,
+      "p50_ms": 14507.20158299373,
+      "p95_ms": 17535.102346506028
+    },
+    "cache_entries": 24,
+    "cache_hits": 7,
+    "classifications": 400,
+    "cold_batches_measured": 0,
+    "distinct_batches": 0,
+    "distinct_batches_historical": 7,
+    "failures": 0,
+    "historical_meaning": "cold measurements recorded by the run that first made those calls; not this run",
+    "latency_meaning": "cold network calls made in this process only; cache hits contribute none",
+    "ms_per_item_amortised": null,
+    "ms_per_item_amortised_historical": 246.31707874999847,
+    "requests": 0,
+    "tier": "smart",
+    "warm_cache_hits_excluded_from_latency": 7
+  },
+  "data": {
+    "decisions_instrument_excluded": 299,
+    "decisions_real_work": 647,
+    "decisions_scored": 400,
+    "mode": "offline replay of recorded traces; no live browser runs",
+    "sampled": true,
+    "tasks": {
+      "allbirds-uk-add-to-cart-tag-check": 111,
+      "chanel-gb-pdp-tag-inspection": 34,
+      "chanel-gb-tag-check": 46,
+      "gymshark-uk-add-to-cart-tag-check": 119,
+      "porsche-uk-script-inventory": 18,
+      "porsche-uk-tag-inspection": 25,
+      "puma-uk-script-inventory": 26,
+      "puma-uk-seo-metadata-audit": 27,
+      "puma-uk-tag-inspection": 25,
+      "rajeevg-crawlability-audit": 27,
+      "rajeevg-seo-metadata-audit": 23,
+      "tldraw-three-shape-diagram": 112
+    },
+    "traces": 116
+  },
+  "glm": {
+    "cache_hits": 60,
+    "cold_calls_recorded_from_cache": 60,
+    "completion_tokens": 0,
+    "cost_usd_from_snapshot": 0.0,
+    "cost_usd_from_usage": 0.0,
+    "cost_usd_including_cache": 0.011386,
+    "failures": 0,
+    "latency": {
+      "max_ms": null,
+      "mean_ms": null,
+      "n": 0,
+      "p50_ms": null,
+      "p95_ms": null
+    },
+    "latency_cold_only": {
+      "max_ms": null,
+      "mean_ms": null,
+      "n": 0,
+      "p50_ms": null,
+      "p95_ms": null
+    },
+    "latency_historical_from_cache": {
+      "max_ms": 23917.591792007443,
+      "mean_ms": 6609.884852750595,
+      "n": 60,
+      "p50_ms": 4849.559270500322,
+      "p95_ms": 17397.360166061113
+    },
+    "latency_historical_meaning": "cold measurements recorded by the run that first made those calls; not this run.",
+    "latency_meaning": "cold calls made in this process only. Cache hits contribute no latency, and measurements recorded by an earlier run are reported separately under latency_historical_from_cache rather than mixed into this figure.",
+    "model": "z-ai/glm-5.3-flash",
+    "prompt_tokens": 0,
+    "requests": 0,
+    "tokens_including_cache": {
+      "completion": 17090,
+      "prompt": 24554
+    },
+    "warm_cache_hits_excluded_from_latency": 60
+  },
+  "heldout_gate_target_90": {
+    "heldout": {
+      "auto_accuracy": 0.9090909090909091,
+      "auto_accuracy_ci95": [
+        0.8506741966267627,
+        0.9461027385196809
+      ],
+      "auto_correct": 130,
+      "coverage": 0.6908212560386473,
+      "n": 143,
+      "threshold": 0.65
+    },
+    "note": "the tuning figure is in-sample, the held-out figure is out-of-sample",
+    "split": "deterministic by hash of the item key; tuning and held-out halves are disjoint",
+    "target_accuracy": 0.9,
+    "threshold_chosen_on_tuning_split": 0.65,
+    "tuning": {
+      "auto_accuracy": 0.9172932330827067,
+      "auto_accuracy_ci95": [
+        0.857964783257629,
+        0.9531920579368615
+      ],
+      "auto_correct": 122,
+      "coverage": 0.689119170984456,
+      "n": 133,
+      "threshold": 0.65
+    }
+  },
+  "heldout_gate_target_95": {
+    "heldout": {
+      "auto_accuracy": 0.9694656488549618,
+      "auto_accuracy_ci95": [
+        0.9241181801775892,
+        0.988063223780833
+      ],
+      "auto_correct": 127,
+      "coverage": 0.6328502415458938,
+      "n": 131,
+      "threshold": 0.7
+    },
+    "note": "the tuning figure is in-sample, the held-out figure is out-of-sample",
+    "split": "deterministic by hash of the item key; tuning and held-out halves are disjoint",
+    "target_accuracy": 0.95,
+    "threshold_chosen_on_tuning_split": 0.7,
+    "tuning": {
+      "auto_accuracy": 0.9754098360655737,
+      "auto_accuracy_ci95": [
+        0.9301912152975784,
+        0.9916025317622172
+      ],
+      "auto_correct": 119,
+      "coverage": 0.6321243523316062,
+      "n": 122,
+      "threshold": 0.7
+    }
+  },
+  "label_distribution": {
+    "click": 40,
+    "done": 4,
+    "inspect": 346,
+    "navigate": 1,
+    "press": 6,
+    "type": 2,
+    "wait": 1
+  },
+  "methods": {
+    "classifier_dev_smart": {
+      "escalated_fraction": 0.0,
+      "escalated_to_reasoning": 0,
+      "top1_accuracy": 0.68
+    },
+    "glm_5_3_flash_sample": {
+      "mean_prompt_tokens": 358.6222222222222,
+      "parsed": 45,
+      "sample_size": 60,
+      "top1_accuracy": 0.6888888888888889
+    },
+    "majority_baseline": {
+      "majority": "inspect",
+      "top1_accuracy": 0.865
+    }
+  },
+  "per_label_recall": {
+    "click": {
+      "n": 40,
+      "recall": 0.65
+    },
+    "done": {
+      "n": 4,
+      "recall": 0.5
+    },
+    "inspect": {
+      "n": 346,
+      "recall": 0.6965317919075145
+    },
+    "navigate": {
+      "n": 1,
+      "recall": 0.0
+    },
+    "press": {
+      "n": 6,
+      "recall": 0.5
+    },
+    "type": {
+      "n": 2,
+      "recall": 0.0
+    },
+    "wait": {
+      "n": 1,
+      "recall": 0.0
+    }
+  },
+  "provenance": {
+    "note": "numbers come from cached third-party calls; a re-run is free but needs the same local inputs and the response cache unless the script can rebuild them",
+    "reason": "inputs are next-action decisions parsed from Rajeev-SG/web-automation-microbench trace artifacts, which is a private repository; the decision states contain page text from client sites, so they are not committed",
+    "regenerate_with": "python3 tests/06_browser_routing/extract.py (needs a local clone of the microbench repo)",
+    "reproducible_from_repo": false
+  },
+  "test": "06_browser_routing",
+  "threshold_curve": [
+    {
+      "auto_accuracy": 0.68,
+      "auto_accuracy_ci95": [
+        0.6327588055173099,
+        0.7238166438668052
+      ],
+      "auto_n": 400,
+      "coverage": 1.0,
+      "threshold": 0.0
+    },
+    {
+      "auto_accuracy": 0.7543352601156069,
+      "auto_accuracy_ci95": [
+        0.7063459218666491,
+        0.7967389028082893
+      ],
+      "auto_n": 346,
+      "coverage": 0.865,
+      "threshold": 0.5
+    },
+    {
+      "auto_accuracy": 0.8448844884488449,
+      "auto_accuracy_ci95": [
+        0.7998305627152148,
+        0.8813026343480256
+      ],
+      "auto_n": 303,
+      "coverage": 0.7575,
+      "threshold": 0.6
+    },
+    {
+      "auto_accuracy": 0.9723320158102767,
+      "auto_accuracy_ci95": [
+        0.9440001416001346,
+        0.9865344758450144
+      ],
+      "auto_n": 253,
+      "coverage": 0.6325,
+      "threshold": 0.7
+    },
+    {
+      "auto_accuracy": 0.9946236559139785,
+      "auto_accuracy_ci95": [
+        0.9701787472015778,
+        0.9990503364133939
+      ],
+      "auto_n": 186,
+      "coverage": 0.465,
+      "threshold": 0.8
+    },
+    {
+      "auto_accuracy": 1.0,
+      "auto_accuracy_ci95": [
+        0.9479751251327163,
+        0.9999999999999999
+      ],
+      "auto_n": 70,
+      "coverage": 0.175,
+      "threshold": 0.9
+    },
+    {
+      "auto_accuracy": 1.0,
+      "auto_accuracy_ci95": [
+        0.8063865817272802,
+        1.0
+      ],
+      "auto_n": 16,
+      "coverage": 0.04,
+      "threshold": 0.95
+    }
+  ],
+  "threshold_curve_caveat": "in-sample: this sweep and the calibration table are computed on the same items used to report accuracy, so any operating point read off it is optimistic. Use the heldout_gate blocks for an out-of-sample number."
+}

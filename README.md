@@ -35,14 +35,28 @@ Every test must answer in plain English:
 
 ## Tests
 
-| # | Test | Real data | Decision being tested |
-|---|---|---|---|
-| 1 | Corpus relevance sieve | ad-platform-intelligence | Which harvested records deserve expensive extraction/synthesis? |
-| 2 | Coding-agent tool routing | successful agent traces | Which tool/tool-family should be used next? |
-| 3 | Agent context pruning | long coding-agent sessions | KEEP / TRUNCATE / DROP prior context |
-| 4 | PR review gate | historical PRs + CI/review outcomes | Does this change need expensive model review? |
-| 5 | Retrieval relevance gate | Project Recall / Recoll outputs | Which retrieved chunks should enter model context? |
-| 6 | Browser next-action routing | web-automation-microbench traces | Which browser action should run next? |
+Verdicts and numbers: **[RESULTS.md](RESULTS.md)**. Each test's full write-up is
+in `results/<test>/README.md`.
+
+| # | Issue | Test | Real data | Decision being tested | Verdict |
+|---|---|---|---|---|---|
+| 1 | #2 | Corpus relevance sieve | adpi-data, 837 real records | Which harvested records deserve expensive synthesis? | not proven |
+| 2 | #3 | Coding-agent tool routing | 2,983 decisions from real sessions | Which tool/tool-family should be used next? | prior only |
+| 3 | #4 | Agent context pruning | 5 long codex sessions | KEEP / TRUNCATE / DROP prior context | not proven |
+| 4 | #5 | PR review gate | 102 real PRs x 5 repos | Does this change need expensive review? | not proven |
+| 5 | #6 | Retrieval relevance gate | local Recoll index + session ground truth | Which retrieved chunks enter context? | blocked |
+| 6 | #7 | Browser next-action routing | 946 recorded microbench decisions | Which browser action runs next? | use as gate |
+
+## How to run
+
+```sh
+python3 tests/<test>/extract.py   # or build_dataset.py / collect.py
+python3 tests/<test>/run.py       # writes results/<test>/
+```
+
+Standard library only. `lib/jevbench.py` holds the two clients, the response
+cache, redaction and the metrics. classifier.dev needs no key; GLM needs an
+OpenRouter key in `OPENROUTER_API_KEY` or the login keychain (`openrouter`).
 
 ## Required output
 
