@@ -72,6 +72,34 @@ recorded real-work decisions.
 **Do not** let it own rare deterministic actions: `type`, `wait` and `navigate`
 recall were 0.00 in this sample.
 
+### USE AS GATE — Jev fast path over Playwriter / Browser Relay (Test 6, live transports)
+
+**Status: harness live-validated; scored matrix not run.**
+
+This is the *live transport* half of Test 6 (issue #9), distinct from the offline
+next-action row above. It asks whether Jev can drive the user's existing Chrome
+through Playwriter or Browser Relay while the real `jev_ultrafast.agent.Agent`
+loop and the microbench verifier stay unchanged.
+
+What is proven on this Mac: the `BridgeBrowser` navigates, observes, fills,
+clicks and scrolls against **both** transports; Enter-commit works on both; the
+observed-node contract holds (the model never supplies a selector, and stale or
+covered targets fail closed). All four real-work task URLs load and observe.
+
+What is **not** proven, and why: the scored matrix cannot run here. Jev's policy
+calls TypeSafe directly and this Mac has **no TypeSafe API key**, so every
+decision raises. Separately, the canonical TodoMVC task may be unreachable by
+stock Jev for a second reason beyond the documented missing-Enter action: the
+per-item complete checkbox is `opacity: 0`, and Jev's visibility filter
+(`checkOpacity:true`) drops it from the action space entirely — so "mark one
+todo complete" is never offered as a choice. Both are recorded as evidence, not
+papered over. Details: [results/browser-fastpath/README.md](results/browser-fastpath/README.md).
+
+**Provisional guidance until the matrix runs:** keep browser next-action routing
+on the classifier-gated path above; do not yet replace shop/console browser work
+with Jev, because the transport path is validated but the task-success numbers
+are not.
+
 ### USE AS PRIOR — coding-agent tool routing (Test 2)
 
 **Integration point:** before a reasoning turn, give the model Jev's top-2

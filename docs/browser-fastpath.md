@@ -84,3 +84,32 @@ Follow the microbench policy: 2 reps to screen, 5 for plausible frontier candida
 5. Planner turns eliminated.
 6. Fallback frequency.
 7. Whether the benefit grows with task length.
+
+## Live validation status (issue #9)
+
+The harness was exercised live on this Mac. The `BridgeBrowser` navigates,
+observes, fills, clicks and scrolls against both Playwriter and Browser Relay;
+Enter-commit works on both; the observed-node contract holds and stale/covered
+targets fail closed.
+
+Two blockers stop the scored matrix here:
+
+1. **No TypeSafe key on this Mac.** `jev_ultrafast.model` posts to
+   `https://api.typesafe.ai/v1/systemone` with `TYPESAFE_API_KEY`; unset, every
+   decision raises. Prior Test 6 work used classifier.dev (`lib/jevbench.py`),
+   so scoring needs either a TypeSafe key or the classifier.dev client wired
+   into `jev_ultrafast.model.post_json`.
+2. **Stock Jev cannot complete the canonical TodoMVC task** for two independent
+   reasons: no arbitrary keypress action (documented), and the per-item complete
+   checkbox is `opacity: 0`, so Jev's `checkOpacity:true` visibility filter drops
+   it from the action space entirely.
+
+Operational notes for scoring:
+
+- Browser Relay drops `key` input when the attached tab is backgrounded. Focus
+  the tab (`browser-relay focus --tab <id>`) before a compat run.
+- The relay needs a Chrome with its extension loaded; a dedicated Chrome for
+  Testing instance with the extension unpacked works for validation.
+- `scripts/live_validate.py` replays the real Agent loop + bridge + verifier with
+  a scripted policy (no key required), writing JSON to
+  `results/browser-fastpath/validation/`.
