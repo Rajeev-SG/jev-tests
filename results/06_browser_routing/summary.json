@@ -113,6 +113,62 @@
     },
     "warm_cache_hits_excluded_from_latency": 60
   },
+  "heldout_gate_target_90": {
+    "heldout": {
+      "auto_accuracy": 0.9090909090909091,
+      "auto_accuracy_ci95": [
+        0.8506741966267627,
+        0.9461027385196809
+      ],
+      "auto_correct": 130,
+      "coverage": 0.6908212560386473,
+      "n": 143,
+      "threshold": 0.65
+    },
+    "note": "the tuning figure is in-sample, the held-out figure is out-of-sample",
+    "split": "deterministic by hash of the item key; tuning and held-out halves are disjoint",
+    "target_accuracy": 0.9,
+    "threshold_chosen_on_tuning_split": 0.65,
+    "tuning": {
+      "auto_accuracy": 0.9172932330827067,
+      "auto_accuracy_ci95": [
+        0.857964783257629,
+        0.9531920579368615
+      ],
+      "auto_correct": 122,
+      "coverage": 0.689119170984456,
+      "n": 133,
+      "threshold": 0.65
+    }
+  },
+  "heldout_gate_target_95": {
+    "heldout": {
+      "auto_accuracy": 0.9694656488549618,
+      "auto_accuracy_ci95": [
+        0.9241181801775892,
+        0.988063223780833
+      ],
+      "auto_correct": 127,
+      "coverage": 0.6328502415458938,
+      "n": 131,
+      "threshold": 0.7
+    },
+    "note": "the tuning figure is in-sample, the held-out figure is out-of-sample",
+    "split": "deterministic by hash of the item key; tuning and held-out halves are disjoint",
+    "target_accuracy": 0.95,
+    "threshold_chosen_on_tuning_split": 0.7,
+    "tuning": {
+      "auto_accuracy": 0.9754098360655737,
+      "auto_accuracy_ci95": [
+        0.9301912152975784,
+        0.9916025317622172
+      ],
+      "auto_correct": 119,
+      "coverage": 0.6321243523316062,
+      "n": 122,
+      "threshold": 0.7
+    }
+  },
   "label_distribution": {
     "click": 40,
     "done": 4,
@@ -169,49 +225,84 @@
       "recall": 0.0
     }
   },
+  "provenance": {
+    "note": "numbers come from cached third-party calls; a re-run is free but needs the same local inputs and the response cache unless the script can rebuild them",
+    "reason": "inputs are next-action decisions parsed from Rajeev-SG/web-automation-microbench trace artifacts, which is a private repository; the decision states contain page text from client sites, so they are not committed",
+    "regenerate_with": "python3 tests/06_browser_routing/extract.py (needs a local clone of the microbench repo)",
+    "reproducible_from_repo": false
+  },
   "test": "06_browser_routing",
   "threshold_curve": [
     {
       "auto_accuracy": 0.68,
+      "auto_accuracy_ci95": [
+        0.6327588055173099,
+        0.7238166438668052
+      ],
       "auto_n": 400,
       "coverage": 1.0,
       "threshold": 0.0
     },
     {
       "auto_accuracy": 0.7543352601156069,
+      "auto_accuracy_ci95": [
+        0.7063459218666491,
+        0.7967389028082893
+      ],
       "auto_n": 346,
       "coverage": 0.865,
       "threshold": 0.5
     },
     {
       "auto_accuracy": 0.8448844884488449,
+      "auto_accuracy_ci95": [
+        0.7998305627152148,
+        0.8813026343480256
+      ],
       "auto_n": 303,
       "coverage": 0.7575,
       "threshold": 0.6
     },
     {
       "auto_accuracy": 0.9723320158102767,
+      "auto_accuracy_ci95": [
+        0.9440001416001346,
+        0.9865344758450144
+      ],
       "auto_n": 253,
       "coverage": 0.6325,
       "threshold": 0.7
     },
     {
       "auto_accuracy": 0.9946236559139785,
+      "auto_accuracy_ci95": [
+        0.9701787472015778,
+        0.9990503364133939
+      ],
       "auto_n": 186,
       "coverage": 0.465,
       "threshold": 0.8
     },
     {
       "auto_accuracy": 1.0,
+      "auto_accuracy_ci95": [
+        0.9479751251327163,
+        0.9999999999999999
+      ],
       "auto_n": 70,
       "coverage": 0.175,
       "threshold": 0.9
     },
     {
       "auto_accuracy": 1.0,
+      "auto_accuracy_ci95": [
+        0.8063865817272802,
+        1.0
+      ],
       "auto_n": 16,
       "coverage": 0.04,
       "threshold": 0.95
     }
-  ]
+  ],
+  "threshold_curve_caveat": "in-sample: this sweep and the calibration table are computed on the same items used to report accuracy, so any operating point read off it is optimistic. Use the heldout_gate blocks for an out-of-sample number."
 }

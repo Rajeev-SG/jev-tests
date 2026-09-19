@@ -200,6 +200,14 @@ def main() -> int:
             "classifier_dev_fast": drop_view(truth, fast_pred),
             "classifier_dev_fast_smart_escalation": drop_view(truth, gated_pred),
         },
+        "noise_check": {
+            "note": "differences this small are not distinguishable from noise",
+            "compare": "jevs accuracy versus the always-keep baseline",
+        },
+        "provenance": jb.provenance(
+            True,
+            "inputs are the public Rajeev-SG/adpi-data export; build_dataset.py re-downloads it",
+            "python3 tests/01_corpus_sieve/build_dataset.py && python3 tests/01_corpus_sieve/run.py"),
         "classifier_dev_fast": fast_client.stats(),
         "classifier_dev_smart_escalation": {
             "unsure_count": len(unsure),

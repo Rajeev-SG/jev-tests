@@ -1,8 +1,10 @@
 # Test 5 — Jev relevance gate after Project Recall / Recoll retrieval
 
-**Verdict: NOT PROVEN — blocked by the local retrieval stack.** The gate could
-not be measured, because the local Recoll index cannot produce the candidate
-pools this test needs. No synthetic corpus was substituted.
+**Verdict: NO CLAIM — this is a harness failure, not a result about Jev.** The
+experiment could not be built: the local Recoll index cannot produce the
+candidate pools the design needs, so nothing was measured in either direction.
+It is filed as a failure to fix, not as evidence against a relevance gate. No
+synthetic corpus was substituted to manufacture a number.
 
 ## What was attempted
 
@@ -54,6 +56,8 @@ $0.00. No classifier or LLM calls were needed to establish the blocker;
 
 Until then, the correct statement is: **we do not know whether Jev should sit
 between retrieval and the coding model.** Nothing here argues for or against it.
+The summary records `harness_failure: true` and the reason, so a reader scanning
+the artefacts cannot mistake this for a measured negative.
 
 ## Reproduce
 

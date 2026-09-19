@@ -42,6 +42,25 @@ search 0.64, edit 0.61, read 0.52.
 Per source (Jev top-1): claude 0.71, pi 0.57, droid 0.55, codex 0.53.
 Codex is only 15 decisions in this partial run, so it carries almost no weight.
 
+## Two validity caveats, both measured
+
+**The subset is not a random sample.** The 1,265 evaluated decisions are a
+time-ordered prefix of the 2,983 extracted, cut where the classifier.dev daily
+cap ran out. Composition drifts from the full set by up to 47 points (source:codex -47.4, source:pi +25.2, source:claude +18.4),
+so the comparison below is a partial result, not a validated estimate of the
+whole corpus. `summary.json` records this under `subset_representativeness`.
+
+**Threshold selection costs accuracy.** A gate targeting 90% auto-accuracy: the
+tuning half chose **0.8**, giving
+
+| split | n | coverage | accuracy | 95% CI |
+|---|---|---|---|---|
+| tuning (in-sample) | 79 | 12.7% | 0.937 | 0.860-0.973 |
+| held-out | 83 | 12.9% | 0.867 | 0.778-0.924 |
+
+The in-sample curve in `summary.json` is therefore optimistic by about three
+points at this operating point.
+
 ## The 98% criterion is not met
 
 | Jev confidence | coverage | accuracy on auto-routed |

@@ -120,6 +120,12 @@ def main() -> int:
             escalated += 1
 
     confident = [(c, t == p) for c, t, p in zip(conf, truth, pred) if c is not None]
+    # The threshold sweep above is in-sample. This is the honest counterpart: the
+    # threshold is chosen on a tuning half and scored on a disjoint held-out half.
+    heldout = jb.heldout_threshold_eval(
+        [f"{r['trace']}:{r['step']}" for r in rows], conf, [t == p for t, p in zip(truth, pred)], 0.95)
+    heldout_90 = jb.heldout_threshold_eval(
+        [f"{r['trace']}:{r['step']}" for r in rows], conf, [t == p for t, p in zip(truth, pred)], 0.90)
     summary = {
         "test": "06_browser_routing",
         "data": {
@@ -141,6 +147,18 @@ def main() -> int:
             },
         },
         "threshold_curve": jb.coverage_curve([c for c, _ in confident], [ok for _, ok in confident], THRESHOLDS),
+        "threshold_curve_caveat": (
+            "in-sample: this sweep and the calibration table are computed on the same items used "
+            "to report accuracy, so any operating point read off it is optimistic. Use the "
+            "heldout_gate blocks for an out-of-sample number."),
+        "heldout_gate_target_95": heldout,
+        "heldout_gate_target_90": heldout_90,
+        "provenance": jb.provenance(
+            False,
+            "inputs are next-action decisions parsed from Rajeev-SG/web-automation-microbench "
+            "trace artifacts, which is a private repository; the decision states contain page "
+            "text from client sites, so they are not committed",
+            "python3 tests/06_browser_routing/extract.py (needs a local clone of the microbench repo)"),
         "calibration": jb.calibration_table([c for c, _ in confident], [ok for _, ok in confident]),
         "per_label_recall": {
             label: {
@@ -199,14 +217,27 @@ def report(summary):
     print("\nper-label recall:")
     for label, metrics in summary["per_label_recall"].items():
         print(f"  {label:10s} n={metrics['n']:4d} recall={fmt(metrics['recall'])}")
-    print("\ncoverage/accuracy curve:")
+    print("\ncoverage/accuracy curve (IN-SAMPLE; see held-out below):")
     for row in summary["threshold_curve"]:
         print(f"  >={row['threshold']:.2f}  coverage={100 * row['coverage']:5.1f}%  "
               f"auto-accuracy={fmt(row['auto_accuracy'])}")
+    for key in ("heldout_gate_target_95", "heldout_gate_target_90"):
+        block = summary[key]
+        tune, hold = block["tuning"], block["heldout"]
+        print(f"\nheld-out check (target {block['target_accuracy']}, threshold "
+              f"{block['threshold_chosen_on_tuning_split']} chosen on the tuning half):")
+        print(f"  tuning   n={tune['n']:4d} coverage={100 * tune['coverage']:5.1f}% "
+              f"accuracy={fmt(tune['auto_accuracy'])} ci95={fmt_ci(tune['auto_accuracy_ci95'])}")
+        print(f"  held-out n={hold['n']:4d} coverage={100 * hold['coverage']:5.1f}% "
+              f"accuracy={fmt(hold['auto_accuracy'])} ci95={fmt_ci(hold['auto_accuracy_ci95'])}")
 
 
 def fmt(value):
     return "n/a" if value is None else f"{value:.3f}"
+
+
+def fmt_ci(interval):
+    return "n/a" if not interval else f"[{interval[0]:.3f}, {interval[1]:.3f}]"
 
 
 if __name__ == "__main__":

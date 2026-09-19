@@ -283,5 +283,11 @@
       "threshold": 0.95
     }
   ],
+  "provenance": {
+    "note": "numbers come from cached third-party calls; a re-run is free but needs the same local inputs and the response cache unless the script can rebuild them",
+    "reason": "inputs are PR metadata from private repositories (openreview, ad-platform-intelligence, codex-home, project-recall)",
+    "regenerate_with": "python3 tests/04_pr_gate/collect.py --per-repo 30 (needs gh auth)",
+    "reproducible_from_repo": false
+  },
   "test": "04_pr_gate"
 }

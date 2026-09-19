@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import os
 import re
 import ssl
@@ -387,9 +388,15 @@ class ClassifierDev:
 
 
 def openrouter_key() -> str:
+    """OPENROUTER_API_KEY first, so the harness is portable; macOS keychain second."""
     key = os.environ.get("OPENROUTER_API_KEY")
     if key:
         return key
+    if sys.platform != "darwin":
+        raise RuntimeError(
+            "No OpenRouter key. On this platform set OPENROUTER_API_KEY in the environment; "
+            "the keychain fallback is macOS-only."
+        )
     try:
         out = subprocess.run(
             ["security", "find-generic-password", "-s", "openrouter", "-w"],
@@ -398,8 +405,8 @@ def openrouter_key() -> str:
         return out.stdout.strip()
     except (subprocess.CalledProcessError, FileNotFoundError, OSError) as exc:
         raise RuntimeError(
-            "No OpenRouter key: set OPENROUTER_API_KEY or store one in the "
-            "login keychain under service 'openrouter'."
+            "No OpenRouter key: set OPENROUTER_API_KEY (portable) or store one in the "
+            "macOS login keychain under service 'openrouter'."
         ) from exc
 
 
@@ -579,6 +586,93 @@ def approx_tokens(text: str) -> int:
     return max(1, round(len(text) / 4))
 
 
+def wilson_interval(successes: int, n: int, z: float = 1.96):
+    """95% Wilson score interval for a binomial proportion. None when n == 0."""
+    if n == 0:
+        return None
+    phat = successes / n
+    denom = 1 + z * z / n
+    centre = (phat + z * z / (2 * n)) / denom
+    half = (z * ((phat * (1 - phat) / n + z * z / (4 * n * n)) ** 0.5)) / denom
+    return [max(0.0, centre - half), min(1.0, centre + half)]
+
+
+def overlaps(a, b) -> bool:
+    """True when two intervals overlap, i.e. the difference is inside the noise."""
+    if not a or not b:
+        return False
+    return a[0] <= b[1] and b[0] <= a[1]
+
+
+def heldout_threshold_eval(keys, confidences, correct, target_accuracy):
+    """Choose a confidence threshold on a tuning half, report it on a held-out half.
+
+    `keys` is any stable per-item identifier (a decision id, a file name). Items
+    are split deterministically by a hash of the key, so the split is stable
+    across runs and does not depend on ordering. The threshold chosen is the
+    lowest one whose tuning-split auto-accuracy meets `target_accuracy`; if no
+    threshold qualifies, the tuning split reports None and the held-out half is
+    still evaluated at the highest threshold tried.
+
+    This exists because a threshold picked by looking at the same data used to
+    report accuracy is an optimistic number, not a measurement.
+    """
+    tune = [i for i, k in enumerate(keys) if _tuning_half(k)]
+    hold = [i for i, k in enumerate(keys) if not _tuning_half(k)]
+    candidates = [round(0.05 * step, 2) for step in range(1, 20)]
+    chosen = None
+    for threshold in candidates:
+        picked = [i for i in tune if confidences[i] is not None and confidences[i] >= threshold]
+        if not picked:
+            continue
+        accuracy = sum(1 for i in picked if correct[i]) / len(picked)
+        if accuracy >= target_accuracy:
+            chosen = threshold
+            break
+    if chosen is None:
+        chosen = candidates[-1]
+
+    def at(threshold, indices):
+        picked = [i for i in indices if confidences[i] is not None and confidences[i] >= threshold]
+        if not picked:
+            return {"threshold": threshold, "n": 0, "coverage": 0.0, "auto_accuracy": None,
+                    "auto_accuracy_ci95": None, "auto_correct": 0}
+        hits = sum(1 for i in picked if correct[i])
+        return {
+            "threshold": threshold,
+            "n": len(picked),
+            "coverage": len(picked) / len(indices) if indices else 0.0,
+            "auto_accuracy": hits / len(picked),
+            "auto_accuracy_ci95": wilson_interval(hits, len(picked)),
+            "auto_correct": hits,
+        }
+
+    return {
+        "target_accuracy": target_accuracy,
+        "threshold_chosen_on_tuning_split": chosen,
+        "tuning": at(chosen, tune),
+        "heldout": at(chosen, hold),
+        "split": "deterministic by hash of the item key; tuning and held-out halves are disjoint",
+        "note": "the tuning figure is in-sample, the held-out figure is out-of-sample",
+    }
+
+
+def _tuning_half(key) -> bool:
+    digest = hashlib.sha256(str(key).encode()).hexdigest()
+    return int(digest[-1], 16) % 2 == 0
+
+
+def provenance(reproducible_from_repo: bool, reason: str, regenerate_with: str = "") -> dict:
+    """Every summary records whether a third party can re-derive its numbers."""
+    return {
+        "reproducible_from_repo": reproducible_from_repo,
+        "reason": reason,
+        "regenerate_with": regenerate_with,
+        "note": ("numbers come from cached third-party calls; a re-run is free but needs the "
+                 "same local inputs and the response cache unless the script can rebuild them"),
+    }
+
+
 # --------------------------------------------------------------------------
 # metrics
 # --------------------------------------------------------------------------
@@ -613,6 +707,9 @@ def binary_metrics(y_true, y_pred, positive=1):
         "recall": recall,
         "f1": f1,
         "accuracy": (tp + tn) / len(y_true),
+        "accuracy_ci95": wilson_interval(tp + tn, len(y_true)),
+        "precision_ci95": wilson_interval(tp, tp + fp) if (tp + fp) else None,
+        "recall_ci95": wilson_interval(tp, tp + fn) if (tp + fn) else None,
         "false_negative_rate": (fn / (fn + tp)) if (fn + tp) else None,
     }
 
@@ -655,6 +752,7 @@ def coverage_curve(confidences, correct, thresholds):
             "coverage": len(picked) / total if total else 0.0,
             "auto_n": len(picked),
             "auto_accuracy": hits / len(picked),
+            "auto_accuracy_ci95": wilson_interval(hits, len(picked)),
         })
     return rows
 

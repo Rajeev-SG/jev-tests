@@ -68,8 +68,16 @@
       "/Users/rajeev/tradehero-mobile-web-parity-audit"
     ]
   },
+  "harness_failure": true,
+  "harness_failure_meaning": "this is a failure of the experiment design, not evidence about Jev. The retrieval step could not produce a usable candidate pool, so no claim about a relevance gate is made in either direction.",
   "per_session": [],
   "precision_of_kept": null,
+  "provenance": {
+    "note": "numbers come from cached third-party calls; a re-run is free but needs the same local inputs and the response cache unless the script can rebuild them",
+    "reason": "retrieval runs against the local Recoll index and the ground truth comes from local agent sessions; neither is committed",
+    "regenerate_with": "python3 tests/05_retrieval_gate/run.py --dry-run (needs the local Recoll index)",
+    "reproducible_from_repo": false
+  },
   "recall_of_useful_chunks": null,
   "test": "05_retrieval_gate",
   "threshold": 0.7,

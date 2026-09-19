@@ -36,6 +36,13 @@ pipeline could not act on it. That labels **93 low-value / 744 worth (88.9%)**.
   operating point is 0.944 accuracy at 55.1% coverage — dominated by the 89%
   base rate, not by skill on the low-value records.
 
+## The accuracy gap is inside the noise
+
+Jev's 0.886 against the always-keep baseline's 0.889 is a difference of about
+**2 records out of 837**. `binary_metrics` now reports 95% Wilson intervals in
+the summary; the two are indistinguishable, so the finding is "Jev adds nothing
+over keeping everything", not "Jev is slightly worse".
+
 ## The ground truth is the real problem
 
 GLM-5.3-Flash independently judged 150 stratified records on the same question

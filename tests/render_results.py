@@ -75,10 +75,14 @@ def rows():
     ill = cost1["illustrative_glm_cost_usd"]
     m2 = t2["methods"]
     c2 = {r["threshold"]: r for r in t2["threshold_curve_fast"]}.get(0.8, {})
+    h2 = t2["heldout_gate_target_90"]
+    d2 = t2["subset_representativeness"]["largest_share_deltas"][0]
     t3t = t3["context_tokens"]
     g4 = {r["threshold"]: r for r in t4["jev_gate_curve"]}[0.7]
     rule4 = t4["deterministic_rules"]
     c6 = {r["threshold"]: r for r in t6["threshold_curve"]}.get(0.7, {})
+    h6 = t6["heldout_gate_target_95"]
+    h6_tune, h6_hold = h6["tuning"], h6["heldout"]
     m6 = t6["methods"]
 
     return "\n".join([
@@ -88,7 +92,10 @@ def rows():
         f"{f(m1['classifier_dev_fast']['accuracy'], 3)} accuracy vs "
         f"{f(m1['always_keep_baseline']['accuracy'], 3)} always-keep; drop precision "
         f"{f(d1['drop_precision'])}; {f(100 * m1['classifier_dev_fast']['false_negative_rate'], 1)}% false-negative; "
-        f"GLM agrees with the label only {f(m1['glm_5_3_flash_sample']['accuracy'])} | "
+        f"GLM agrees with the label only {f(m1['glm_5_3_flash_sample']['accuracy'])}; "
+        f"the accuracy gap vs the baseline is "
+        f"{f(abs(m1['classifier_dev_fast']['accuracy'] - m1['always_keep_baseline']['accuracy']) * t1['data']['records'], 1)} records "
+        f"out of {t1['data']['records']}, inside the noise | "
         f"{jev_latency(t1['classifier_dev_fast'])} | {llm_latency(t1.get('glm'))} | "
         f"Jev ${f(cost1['illustrative_direct_jev_cost_usd'], 4)} direct-API equivalent; "
         f"GLM {llm_spend(t1.get('glm'))} measured; illustrative corpus pass "
@@ -99,11 +106,15 @@ def rows():
         f"{f(m2['classifier_dev_fast']['top2_accuracy'])} vs majority "
         f"{f(m2['majority_class_baseline']['top1_accuracy'])} / repeat-last "
         f"{f(m2['repeat_last_action_baseline']['top1_accuracy'])} / GLM "
-        f"{f(m2['glm_5_3_flash_sample']['top1_accuracy'])} over {t2['data']['decisions']} decisions | "
+        f"{f(m2['glm_5_3_flash_sample']['top1_accuracy'])} over {t2['data']['decisions']} decisions "
+        f"(time-ordered subset, not a random sample: largest composition drift "
+        f"{d2['axis']} {100 * d2['delta']:+.1f} points) | "
         f"{jev_latency(t2['classifier_dev_fast'])} | {llm_latency(t2.get('glm'))} | "
         f"Jev ${f(cost2['illustrative_direct_jev_cost_usd'], 4)} direct-API equivalent; GLM {llm_spend(t2.get('glm'))}; "
         f"${f(cost2['illustrative_glm_cost_usd']['per_1k_decisions'], 3)} per 1k decisions illustrative | "
-        f"none at 98% accuracy; {f(100 * c2.get('coverage', 0), 1)}% coverage at {f(c2.get('auto_accuracy'))} |",
+        f"none at 98% accuracy; gate picked on a tuning half gives held-out "
+        f"{f(100 * h2['heldout']['coverage'], 1)}% coverage at {f(h2['heldout']['auto_accuracy'])} "
+        f"(in-sample {f(100 * c2.get('coverage', 0), 1)}% at {f(c2.get('auto_accuracy'))}) |",
         f"| 3 | context pruning | KEEP / TRUNCATE / DROP per history unit | **NOT PROVEN** | "
         f"{f(100 * t3['removed_fraction_B'], 1)}% of context removed at a 0.7 gate; "
         f"{t3t['kept']} kept / {t3t['truncated']} truncated / {t3t['dropped']} dropped over {t3t['chunks']} chunks "
@@ -126,7 +137,10 @@ def rows():
         f"| 6 | browser next-action | inspect / click / type / ... | **USE AS GATE** | "
         f"raw {f(m6['classifier_dev_smart']['top1_accuracy'])} vs majority "
         f"{f(m6['majority_baseline']['top1_accuracy'])} and GLM {f(m6['glm_5_3_flash_sample']['top1_accuracy'])}; "
-        f">=0.7 confidence: {f(100 * c6.get('coverage', 0), 1)}% coverage at {f(c6.get('auto_accuracy'))} accuracy "
+        f"threshold {h6['threshold_chosen_on_tuning_split']} picked on a tuning half: "
+        f"held-out {f(100 * h6_hold['coverage'], 1)}% coverage at {f(h6_hold['auto_accuracy'], 3)} accuracy "
+        f"(ci95 {h6_hold['auto_accuracy_ci95'][0]:.2f}-{h6_hold['auto_accuracy_ci95'][1]:.2f}); "
+        f"in-sample was {f(100 * c6.get('coverage', 0), 1)}% at {f(c6.get('auto_accuracy'), 3)}, "
         f"over {t6['data']['decisions_scored']} scored decisions | {jev_latency(t6['classifier'])} | "
         f"{llm_latency(t6.get('glm'))} | Jev $0.00; GLM {llm_spend(t6.get('glm'))} | "
         f"{f(100 * c6.get('coverage', 0), 1)}% of planner turns on the confident subset |",

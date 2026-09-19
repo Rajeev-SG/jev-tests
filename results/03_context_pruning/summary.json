@@ -358,6 +358,12 @@
       "window_tokens": 11657
     }
   ],
+  "provenance": {
+    "note": "numbers come from cached third-party calls; a re-run is free but needs the same local inputs and the response cache unless the script can rebuild them",
+    "reason": "inputs are chunks of long local codex sessions, which contain real work paths and client names",
+    "regenerate_with": "python3 tests/03_context_pruning/extract.py (reads the local AgentSessions index)",
+    "reproducible_from_repo": false
+  },
   "removed_fraction_B": 0.0,
   "removed_fraction_C": 0.008625063419584023,
   "replay_paths_said": {

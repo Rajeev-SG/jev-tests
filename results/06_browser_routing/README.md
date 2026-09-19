@@ -34,17 +34,27 @@ are inspect), so a classifier adds nothing on the full set.
 
 The picture changes with confidence gating:
 
+**In-sample** (threshold swept on the same data used to report accuracy — optimistic):
+
 | confidence threshold | coverage | accuracy on auto-routed |
 |---|---|---|
-| ≥0.50 | 86.5% | 0.754 |
-| ≥0.60 | 75.8% | 0.845 |
-| ≥0.70 | 63.2% | 0.972 |
-| ≥0.80 | 46.5% | 0.995 |
-| ≥0.90 | 17.5% | 1.000 |
+| >=0.50 | 86.5% | 0.754 |
+| >=0.60 | 75.8% | 0.845 |
+| >=0.70 | 63.2% | 0.972 |
+| >=0.80 | 46.5% | 0.995 |
+| >=0.90 | 17.5% | 1.000 |
 
-At ≥0.70, Jev routes 63% of decisions itself at 97.2% accuracy and hands the
-rest to the planner. Items it escalated carry no confidence and were excluded
-from the curve.
+**Out-of-sample** (threshold chosen on a tuning half, scored on the disjoint
+held-out half — this is the number to quote): at a >=95% target the tuning half
+picked **0.7**, giving
+
+| split | n | coverage | accuracy | 95% CI |
+|---|---|---|---|---|
+| tuning | 122 | 63.2% | 0.975 | 0.930-0.992 |
+| held-out | 131 | 63.3% | 0.969 | 0.924-0.988 |
+
+The operating point survives held-out validation: 63.3% coverage at 96.9%, not
+an artefact of threshold selection.
 
 ## Tier note
 

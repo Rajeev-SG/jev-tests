@@ -237,6 +237,12 @@ def main() -> int:
         "per_session": per_session,
         "classifier_dev_fast": fast_client.stats(),
         "glm": glm.stats() if not args.no_glm else None,
+        "provenance": jb.provenance(
+            False,
+            "inputs are chunks of long local codex sessions, which contain real work paths "
+            "and client names",
+            "python3 tests/03_context_pruning/extract.py (reads the local AgentSessions index)"),
+
     }
     jb.write_json(OUT / "summary.json", summary)
     jb.write_jsonl(OUT / "raw.jsonl", per_session)

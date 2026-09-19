@@ -142,6 +142,39 @@ def load_cached_results(states, batch_sizes=(250, 1000, 100, 50, 15, 7)):
     return out
 
 
+def subset_check(all_rows, subset_rows):
+    """Compare the evaluated subset's composition with the full extracted set.
+
+    The evaluated items are a quota-truncated prefix, not a random sample, so
+    this records how far the subset drifts from the whole on the two axes that
+    matter: which harness produced the decision, and which family was observed.
+    """
+    def share(rows, key):
+        counts = collections.Counter(key(r) for r in rows)
+        total = sum(counts.values()) or 1
+        return {k: v / total for k, v in counts.items()}
+
+    by_source = {"full": share(all_rows, lambda r: r["source"]),
+                 "evaluated": share(subset_rows, lambda r: r["source"])}
+    by_family = {"full": share(all_rows, lambda r: true_family(r)),
+                 "evaluated": share(subset_rows, lambda r: true_family(r))}
+    deltas = {}
+    for name, blocks in (("source", by_source), ("family", by_family)):
+        for key in set(blocks["full"]) | set(blocks["evaluated"]):
+            deltas[f"{name}:{key}"] = blocks["evaluated"].get(key, 0.0) - blocks["full"].get(key, 0.0)
+    worst = sorted(deltas.items(), key=lambda kv: -abs(kv[1]))[:5]
+    return {
+        "full_n": len(all_rows),
+        "evaluated_n": len(subset_rows),
+        "by_source": by_source,
+        "by_family": by_family,
+        "largest_share_deltas": [{"axis": k, "delta": round(v, 4)} for k, v in worst],
+        "selection": "time-ordered prefix cut off by the classifier.dev daily cap, not a random sample",
+        "verdict_impact": ("the subset's composition differs from the whole, so this comparison is "
+                           "a partial result and is not presented as a validated estimate"),
+    }
+
+
 def stratified_sample(rows, families, size):
     by_family = collections.defaultdict(list)
     for index, row in enumerate(rows):
@@ -321,6 +354,11 @@ def main() -> int:
         },
         "per_family_recall_fast": {},
         "per_source_accuracy_fast": {},
+        "provenance": jb.provenance(
+            False,
+            "inputs are next-action decisions parsed from local agent sessions in the "
+            "AgentSessions index; they contain real work paths and client names",
+            "python3 tests/02_tool_routing/extract.py (reads the local AgentSessions index)"),
         "classifier_dev_fast": fast_client.stats(),
         "classifier_dev_fast_smart_escalation": {
             "unsure_count": len(unsure),
@@ -331,6 +369,16 @@ def main() -> int:
         },
         "threshold_curve_fast": jb.coverage_curve(
             [c for c, _ in confident_pairs], [ok for _, ok in confident_pairs], THRESHOLDS),
+        "threshold_curve_caveat": (
+            "in-sample: the sweep is computed on the same decisions used to report accuracy, so "
+            "operating points read off it are optimistic. See heldout_gate_* for out-of-sample."),
+        "heldout_gate_target_90": jb.heldout_threshold_eval(
+            [r["decision_id"] for r in rows], fast_conf,
+            [p == t for p, t in zip(fast_pred, truth)], 0.90),
+        "heldout_gate_target_95": jb.heldout_threshold_eval(
+            [r["decision_id"] for r in rows], fast_conf,
+            [p == t for p, t in zip(fast_pred, truth)], 0.95),
+        "subset_representativeness": subset_check(all_rows, rows),
         "calibration_fast": jb.calibration_table(
             [c for c, _ in confident_pairs], [ok for _, ok in confident_pairs]),
     }

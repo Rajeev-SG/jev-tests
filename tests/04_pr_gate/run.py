@@ -224,6 +224,12 @@ def main() -> int:
         "jev_gate_curve": curves,
         "classifier_dev_fast": fast.stats(),
         "glm": glm.stats() if glm_rows else None,
+        "provenance": jb.provenance(
+            False,
+            "inputs are PR metadata from private repositories (openreview, "
+            "ad-platform-intelligence, codex-home, project-recall)",
+            "python3 tests/04_pr_gate/collect.py --per-repo 30 (needs gh auth)"),
+
     }
     if glm_rows:
         parsed = [r for r in glm_rows if r["glm_needs_review"] is not None]

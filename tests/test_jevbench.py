@@ -143,5 +143,67 @@ class CacheLatencyTest(unittest.TestCase):
         self.assertEqual(entry["payload"], {"results": []})
 
 
+class UncertaintyTest(unittest.TestCase):
+    """Findings from review cycle 2: intervals, and out-of-sample thresholds."""
+
+    def test_wilson_bounds_are_within_range_and_ordered(self):
+        low, high = jb.wilson_interval(742, 837)
+        self.assertLessEqual(0.0, low)
+        self.assertLessEqual(low, high)
+        self.assertLessEqual(high, 1.0)
+
+    def test_wilson_is_undefined_for_an_empty_sample(self):
+        self.assertIsNone(jb.wilson_interval(0, 0))
+
+    def test_near_ceiling_interval_does_not_exceed_one(self):
+        low, high = jb.wilson_interval(399, 400)
+        self.assertLessEqual(high, 1.0)
+        self.assertLess(low, 1.0)
+
+    def test_overlap_detects_indistinguishable_accuracy(self):
+        # test 1's 0.886 vs 0.889 always-keep: a few records apart, i.e. noise
+        self.assertTrue(jb.overlaps(jb.wilson_interval(742, 837), jb.wilson_interval(744, 837)))
+
+    def test_overlap_separates_clearly_different_accuracy(self):
+        self.assertFalse(jb.overlaps(jb.wilson_interval(950, 1000), jb.wilson_interval(700, 1000)))
+
+    def test_binary_metrics_report_intervals(self):
+        metrics = jb.binary_metrics([1, 1, 0, 0, 1], [1, 1, 0, 1, 0])
+        self.assertIn("accuracy_ci95", metrics)
+        self.assertIn("recall_ci95", metrics)
+        self.assertIn("precision_ci95", metrics)
+
+    def test_threshold_is_chosen_on_one_half_and_scored_on_the_other(self):
+        keys = [f"item-{i}" for i in range(200)]
+        confidences = [0.95 if i % 2 == 0 else 0.4 for i in range(200)]
+        correct = [True] * 200
+        report = jb.heldout_threshold_eval(keys, confidences, correct, 0.95)
+        self.assertIsNotNone(report["threshold_chosen_on_tuning_split"])
+        self.assertEqual(report["tuning"]["auto_accuracy"], 1.0)
+        self.assertEqual(report["heldout"]["auto_accuracy"], 1.0)
+        # the two halves must be disjoint and cover the whole set
+        self.assertEqual(report["tuning"]["n"] + report["heldout"]["n"], 200)
+
+    def test_heldout_split_is_stable_across_calls(self):
+        keys = [f"k{i}" for i in range(50)]
+        conf = [0.8] * 50
+        correct = [True] * 50
+        self.assertEqual(jb.heldout_threshold_eval(keys, conf, correct, 0.9),
+                         jb.heldout_threshold_eval(keys, conf, correct, 0.9))
+
+    def test_coverage_curve_reports_an_interval(self):
+        rows = jb.coverage_curve([0.9, 0.8, 0.4], [True, True, False], [0.7])
+        self.assertEqual(rows[0]["auto_n"], 2)
+        self.assertIn("auto_accuracy_ci95", rows[0])
+
+
+class ProvenanceTest(unittest.TestCase):
+    def test_provenance_states_reproducibility(self):
+        block = jb.provenance(False, "inputs are private", "python3 script.py")
+        self.assertFalse(block["reproducible_from_repo"])
+        self.assertIn("private", block["reason"])
+        self.assertEqual(block["regenerate_with"], "python3 script.py")
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

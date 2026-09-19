@@ -286,6 +286,17 @@ def main() -> int:
                     "the 30-50 candidate chunks this design assumes") if len(rows) == 0 else None,
         "per_session": rows,
         "classifier": client.stats(),
+        "harness_failure": True,
+        "harness_failure_meaning": (
+            "this is a failure of the experiment design, not evidence about Jev. The retrieval "
+            "step could not produce a usable candidate pool, so no claim about a relevance gate "
+            "is made in either direction."),
+        "provenance": jb.provenance(
+            False,
+            "retrieval runs against the local Recoll index and the ground truth comes from local "
+            "agent sessions; neither is committed",
+            "python3 tests/05_retrieval_gate/run.py --dry-run (needs the local Recoll index)"),
+
     }
     jb.write_json(OUT / "summary.json", summary)
     jb.write_jsonl(OUT / "raw.jsonl", rows)
