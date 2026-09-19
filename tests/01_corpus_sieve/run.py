@@ -330,9 +330,11 @@ def report(summary, volume):
         print(f"{name:38s} acc={fmt(metrics['accuracy'])} "
               f"P={fmt(metrics['precision'])} R={fmt(metrics['recall'])} "
               f"F1={fmt(metrics['f1'])} FNR={fmt(metrics['false_negative_rate'])}")
-    print(f"\nfast tier: {summary['classifier_dev_fast']['requests']} requests, "
+    print(f"\nfast tier: {summary['classifier_dev_fast']['requests']} cold requests this run, "
           f"{summary['classifier_dev_fast']['classifications']} classifications, "
-          f"p50={fmt(summary['classifier_dev_fast']['batch_latency']['p50_ms'])}ms")
+          f"p50={fmt(summary['classifier_dev_fast']['batch_latency']['p50_ms'])}ms; "
+          f"historical p50="
+          f"{fmt(summary['classifier_dev_fast']['batch_latency_historical_from_cache']['p50_ms'])}ms")
     esc = summary["classifier_dev_smart_escalation"]
     print(f"smart escalation: {esc['unsure_count']} unsure "
           f"({100 * esc['unsure_fraction']:.1f}%), {esc['requests']} requests")
@@ -340,7 +342,7 @@ def report(summary, volume):
         print(f"GLM sample: {summary['glm']['requests']} calls, "
               f"{summary['glm']['prompt_tokens']}+{summary['glm']['completion_tokens']} tokens, "
               f"${summary['glm']['cost_usd_from_usage']:.4f} billed, "
-              f"p50={fmt(summary['glm']['latency']['p50_ms'])}ms; "
+              f"p50={glm_latency(summary['glm'])}; "
               f"agrees with pipeline label {fmt(summary['glm_adjudication']['agree_with_pipeline_label'])}")
     print(f"\ndropped {volume['records_dropped']}/{volume['records']} records "
           f"({100 * volume['records_dropped_fraction']:.1f}%)")
@@ -356,6 +358,17 @@ def report(summary, volume):
               f"({100 * metrics['records_dropped_fraction']:5.1f}%) "
               f"drop_precision={fmt(metrics['drop_precision'])} "
               f"worth_recall={fmt(metrics['worth_recall'])}")
+
+
+def glm_latency(glm_stats):
+    """This run's GLM latency when there was one, else the recorded figure."""
+    current = glm_stats["latency"]
+    if current["n"]:
+        return f"{fmt(current['p50_ms'])}ms (this run, cold)"
+    historical = glm_stats.get("latency_historical_from_cache", {"n": 0})
+    if historical["n"]:
+        return f"{fmt(historical['p50_ms'])}ms (recorded by an earlier run)"
+    return "n/a"
 
 
 def fmt(value):

@@ -42,18 +42,18 @@ GLM-5.3-Flash independently judged 150 stratified records on the same question
 (142 parsed): it agrees with the pipeline label only **52.1%** of the time
 (106 of 142 said "worth"). A strong model does not reproduce this label, so the
 label is measuring "the pipeline could not verify it", not "not worth
-synthesising". Jev and GLM agree with each other 73.9% of the time.
+synthesising". Jev and GLM agree with each other 76.8% of the time.
 
 ## Cost and latency
 
 | | value |
 |---|---|
 | records sieved | 837, in 9 batches of 100 |
-| Jev batch latency | p50 2,143 ms per 100-record batch; 28.6 ms/record amortised |
+| Jev batch latency (recorded on the cold run) | p50 2,143 ms per 100-record batch; 28.6 ms/record amortised |
 | Jev cost (measured) | $0.00 (classifier.dev free tier) |
 | Jev cost (direct-API equivalent) | $0.0018 for the whole corpus at $0.042/1M input tokens |
 | GLM cost measured across all runs | $0.0249 (includes a superseded first round) |
-| GLM latency | p50 3,576 ms, p95 11,194 ms per call |
+| GLM latency (recorded) | p50 3,576 ms, p95 11,194 ms per call |
 | illustrative GLM cost, full corpus | $0.086 unsieved vs $0.082 sieved — a 4.5% saving |
 
 A 4.5% sieve saves 4.5% of downstream spend. At this corpus size that is about

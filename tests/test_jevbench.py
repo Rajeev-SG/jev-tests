@@ -72,10 +72,34 @@ class SecretScannerTest(unittest.TestCase):
             "token: ghp_abcdefghijklmnopqrstuvwxyz01",
             "aws AKIAIOSFODNN7EXAMPLE",
             "-----BEGIN RSA PRIVATE KEY-----",
+            "Cookie: sessionid=abcdef1234567890; Path=/",
+            "set-cookie: auth_token=abcdef1234567890; HttpOnly",
         ]
         for text in cases:
             with self.subTest(text=text):
                 self.assertTrue(jb.scan_for_secrets(text), f"missed: {text}")
+
+    def test_findings_never_contain_the_credential(self):
+        secret = "abcdefgh12345678"
+        findings = jb.scan_for_secrets(f"?access_token={secret}")
+        self.assertTrue(findings)
+        for kind, location in findings:
+            self.assertNotIn(secret, location)
+            self.assertNotIn(secret[:6], location)
+            self.assertRegex(location, r"^offset:\d+/\d+ chars$")
+
+    def test_cookie_headers_are_redactable_not_just_detectable(self):
+        # the scanner and the redactor must cover the same shapes, or the gate is
+        # fail-closed on ordinary recorded browser traffic
+        for text in [
+            "Cookie: sessionid=abcdef1234567890; Path=/",
+            "set-cookie: auth_token=abcdef1234567890; HttpOnly",
+        ]:
+            with self.subTest(text=text):
+                cleaned = jb.redact(text)
+                self.assertEqual(jb.scan_for_secrets(cleaned), [],
+                                 f"redaction left the gate closed: {cleaned}")
+                self.assertIn("[redacted]", cleaned)
 
     def test_ignores_placeholders_and_prose(self):
         for text in [
@@ -83,6 +107,7 @@ class SecretScannerTest(unittest.TestCase):
             "authorization: [redacted-credential]",
             "the agent discussed tokens of thought and secrets of state",
             "session cookie handling, token refresh",
+            "Cookie: sessionid=[redacted]; Path=/",
         ]:
             with self.subTest(text=text):
                 self.assertEqual(jb.scan_for_secrets(text), [], f"false positive: {text}")
@@ -91,6 +116,8 @@ class SecretScannerTest(unittest.TestCase):
         with self.assertRaises(jb.SecretDetected) as ctx:
             jb.assert_no_secrets("?access_token=abcdefgh12345678", "a test payload")
         self.assertIn("oauth-query-param", str(ctx.exception))
+        # and the raised message must not carry any part of the credential
+        self.assertNotIn("abcdefgh12345678"[:6], str(ctx.exception))
 
     def test_redaction_then_scan_is_clean(self):
         text = "curl https://x/y?access_token=abcdefgh12345678 and id_token=ya29.abcdefghijklmnopqrstuv"

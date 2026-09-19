@@ -23,20 +23,30 @@
   ],
   "classifier": {
     "batch_latency": {
+      "max_ms": null,
+      "mean_ms": null,
+      "n": 0,
+      "p50_ms": null,
+      "p95_ms": null
+    },
+    "batch_latency_historical_from_cache": {
       "max_ms": 18021.703959006118,
       "mean_ms": 14075.261642857056,
       "n": 7,
       "p50_ms": 14507.20158299373,
       "p95_ms": 17535.102346506028
     },
-    "cache_entries": 23,
+    "cache_entries": 24,
     "cache_hits": 7,
     "classifications": 400,
-    "cold_batches_measured": 7,
-    "distinct_batches": 7,
+    "cold_batches_measured": 0,
+    "distinct_batches": 0,
+    "distinct_batches_historical": 7,
     "failures": 0,
-    "latency_provenance": "cold network calls only; cache hits contribute no latency",
-    "ms_per_item_amortised": 246.31707874999847,
+    "historical_meaning": "cold measurements recorded by the run that first made those calls; not this run",
+    "latency_meaning": "cold network calls made in this process only; cache hits contribute none",
+    "ms_per_item_amortised": null,
+    "ms_per_item_amortised_historical": 246.31707874999847,
     "requests": 0,
     "tier": "smart",
     "warm_cache_hits_excluded_from_latency": 7
@@ -72,11 +82,11 @@
     "cost_usd_including_cache": 0.011386,
     "failures": 0,
     "latency": {
-      "max_ms": 23917.591792007443,
-      "mean_ms": 6609.884852750595,
-      "n": 60,
-      "p50_ms": 4849.559270500322,
-      "p95_ms": 17397.360166061113
+      "max_ms": null,
+      "mean_ms": null,
+      "n": 0,
+      "p50_ms": null,
+      "p95_ms": null
     },
     "latency_cold_only": {
       "max_ms": null,
@@ -85,14 +95,15 @@
       "p50_ms": null,
       "p95_ms": null
     },
-    "latency_provenance": "every entry is a cold call measurement: taken in this process for calls that went over the wire, or recorded on the original cold call for entries served from cache. Warm hits contribute no latency of their own.",
-    "latency_this_run_cold_only": {
-      "max_ms": null,
-      "mean_ms": null,
-      "n": 0,
-      "p50_ms": null,
-      "p95_ms": null
+    "latency_historical_from_cache": {
+      "max_ms": 23917.591792007443,
+      "mean_ms": 6609.884852750595,
+      "n": 60,
+      "p50_ms": 4849.559270500322,
+      "p95_ms": 17397.360166061113
     },
+    "latency_historical_meaning": "cold measurements recorded by the run that first made those calls; not this run.",
+    "latency_meaning": "cold calls made in this process only. Cache hits contribute no latency, and measurements recorded by an earlier run are reported separately under latency_historical_from_cache rather than mixed into this figure.",
     "model": "z-ai/glm-5.3-flash",
     "prompt_tokens": 0,
     "requests": 0,

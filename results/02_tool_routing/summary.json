@@ -29,14 +29,24 @@
       "p50_ms": null,
       "p95_ms": null
     },
+    "batch_latency_historical_from_cache": {
+      "max_ms": null,
+      "mean_ms": null,
+      "n": 0,
+      "p50_ms": null,
+      "p95_ms": null
+    },
     "cache_entries": 45,
     "cache_hits": 0,
     "classifications": 0,
     "cold_batches_measured": 0,
     "distinct_batches": 0,
+    "distinct_batches_historical": 0,
     "failures": 0,
-    "latency_provenance": "cold network calls only; cache hits contribute no latency",
+    "historical_meaning": "cold measurements recorded by the run that first made those calls; not this run",
+    "latency_meaning": "cold network calls made in this process only; cache hits contribute none",
     "ms_per_item_amortised": null,
+    "ms_per_item_amortised_historical": null,
     "requests": 0,
     "tier": "fast",
     "warm_cache_hits_excluded_from_latency": 0
@@ -168,11 +178,11 @@
     "cost_usd_including_cache": 0.018727,
     "failures": 0,
     "latency": {
-      "max_ms": 23712.938459008,
-      "mean_ms": 6415.10929904406,
-      "n": 90,
-      "p50_ms": 5259.43933299277,
-      "p95_ms": 14372.362831095228
+      "max_ms": null,
+      "mean_ms": null,
+      "n": 0,
+      "p50_ms": null,
+      "p95_ms": null
     },
     "latency_cold_only": {
       "max_ms": null,
@@ -181,14 +191,15 @@
       "p50_ms": null,
       "p95_ms": null
     },
-    "latency_provenance": "every entry is a cold call measurement: taken in this process for calls that went over the wire, or recorded on the original cold call for entries served from cache. Warm hits contribute no latency of their own.",
-    "latency_this_run_cold_only": {
-      "max_ms": null,
-      "mean_ms": null,
-      "n": 0,
-      "p50_ms": null,
-      "p95_ms": null
+    "latency_historical_from_cache": {
+      "max_ms": 23712.938459008,
+      "mean_ms": 6415.10929904406,
+      "n": 90,
+      "p50_ms": 5259.43933299277,
+      "p95_ms": 14372.362831095228
     },
+    "latency_historical_meaning": "cold measurements recorded by the run that first made those calls; not this run.",
+    "latency_meaning": "cold calls made in this process only. Cache hits contribute no latency, and measurements recorded by an earlier run are reported separately under latency_historical_from_cache rather than mixed into this figure.",
     "model": "z-ai/glm-5.3-flash",
     "prompt_tokens": 0,
     "requests": 0,

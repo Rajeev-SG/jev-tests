@@ -399,10 +399,12 @@ def raw_rows(rows, truth, fast_pred, gated_pred, fast_conf, glm_rows):
 def cost_summary(rows, states, glm_stats, parsed_calls):
     total = len(rows)
     input_tokens = sum(jb.approx_tokens(s) for s in states)
-    if glm_stats and glm_stats["requests"]:
-        prompt_per = glm_stats["prompt_tokens"] / glm_stats["requests"]
-        completion_per = glm_stats["completion_tokens"] / glm_stats["requests"]
-        latency = glm_stats["latency"]
+    calls = (glm_stats.get("requests", 0) + glm_stats.get("cache_hits", 0)) if glm_stats else 0
+    if calls:
+        tokens = glm_stats.get("tokens_including_cache", {})
+        prompt_per = tokens.get("prompt", glm_stats["prompt_tokens"]) / calls
+        completion_per = tokens.get("completion", glm_stats["completion_tokens"]) / calls
+        latency = glm_stats["latency"] if glm_stats["latency"]["n"] else glm_stats.get("latency_historical_from_cache", glm_stats["latency"])
     else:
         prompt_per, completion_per, latency = 300.0, 250.0, {"p50_ms": None, "p95_ms": None}
     per_call = jb.glm_equivalent_cost(prompt_per, completion_per)
@@ -445,18 +447,34 @@ def report(summary, volume):
     for source, metrics in summary["per_source_accuracy_fast"].items():
         print(f"  {source:8s} n={metrics['n']:5d} top1={fmt(metrics['top1_accuracy'])}")
     fast = summary["classifier_dev_fast"]
-    print(f"\nfast tier: {fast['requests']} requests, p50 batch={fmt(fast['batch_latency']['p50_ms'])}ms "
-          f"({fmt(fast['ms_per_item_amortised'])} ms/item amortised)")
+    print(f"\nfast tier: {fast['requests']} requests cold, "
+          f"p50 batch={fmt(fast['batch_latency']['p50_ms'])}ms "
+          f"({fmt(fast['ms_per_item_amortised'])} ms/item amortised, this run); "
+          f"historical p50={fmt(fast['batch_latency_historical_from_cache']['p50_ms'])}ms")
     esc = summary["classifier_dev_fast_smart_escalation"]
     print(f"smart escalation: {esc['unsure_count']} unsure ({100 * esc['unsure_fraction']:.1f}%)")
     if "glm" in summary:
-        print(f"GLM: {summary['glm']['requests']} calls, ${summary['glm']['cost_usd_from_usage']:.4f} billed, "
-              f"p50={fmt(summary['glm']['latency']['p50_ms'])}ms")
+        glm_here = glm_latency(summary["glm"])
+        print(f"GLM: {summary['glm']['requests']} calls this run, "
+              f"${summary['glm']['cost_usd_including_cache']:.4f} recorded spend, "
+              f"p50={fmt(glm_here['p50_ms'])}ms "
+              f"(n={glm_here['n']} cold call{'' if glm_here['n'] == 1 else 's'})")
     print("\ncoverage/accuracy curve (auto-routed only):")
     for row in summary["threshold_curve_fast"]:
         print(f"  >={row['threshold']:.2f}  coverage={100 * row['coverage']:5.1f}%  "
               f"auto-accuracy={fmt(row['auto_accuracy'])}")
     print(f"\nillustrative GLM cost per 1k decisions: ${volume['illustrative_glm_cost_usd']['per_1k_decisions']}")
+
+
+def glm_latency(glm_stats):
+    """This run's GLM latency when there was one, else the recorded figure."""
+    current = glm_stats["latency"]
+    if current["n"]:
+        return f"{fmt(current['p50_ms'])}ms (this run, cold)"
+    historical = glm_stats.get("latency_historical_from_cache", {"n": 0})
+    if historical["n"]:
+        return f"{fmt(historical['p50_ms'])}ms (recorded by an earlier run)"
+    return "n/a"
 
 
 def fmt(value):

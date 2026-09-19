@@ -26,10 +26,10 @@ treated as KEEP, because dropping evidence on a guess is the expensive mistake.
 | keep | 309 |
 | truncate | 0 |
 | drop | 0 |
-| context tokens A (full) | 59,413 |
-| context tokens B (Jev-pruned) | 59,413 |
-| context tokens C (recency baseline) | 59,413 |
-| removed | **0.0%** |
+| context tokens A (full) | 59,130 |
+| context tokens B (Jev-pruned) | 59,130 |
+| context tokens C (recency baseline) | 58,620 |
+| removed | **0.0%** (recency baseline removes 0.9%) |
 
 **Why nothing was pruned:** Jev's *raw* answers said "drop" for 17–27% of chunks
 per session, but almost none of those answers carried ≥0.7 confidence — the
@@ -49,8 +49,8 @@ inconclusive; it is reported here rather than hidden.
 
 | | value |
 |---|---|
-| Jev | 309 classifications, 8 requests, 585 ms/item amortised (smart tier; no fast-tier quota left today) |
-| GLM replay | 7 calls across runs, ≈$0.038 recorded spend |
+| Jev | 309 classifications, 585 ms/item amortised (recorded on the cold run; smart tier, no fast-tier quota left that day) |
+| GLM replay | 15 calls recorded across runs, $0.038 recorded spend, p50 8,188 ms |
 
 ## What this means
 

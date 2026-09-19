@@ -1,6 +1,13 @@
 {
   "classifier_dev_fast": {
     "batch_latency": {
+      "max_ms": null,
+      "mean_ms": null,
+      "n": 0,
+      "p50_ms": null,
+      "p95_ms": null
+    },
+    "batch_latency_historical_from_cache": {
       "max_ms": 37573.51004099473,
       "mean_ms": 22615.58763537323,
       "n": 8,
@@ -8,16 +15,19 @@
       "p95_ms": 36116.93122884826
     },
     "cache_entries": 24,
-    "cache_hits": 7,
+    "cache_hits": 8,
     "classifications": 309,
-    "cold_batches_measured": 8,
-    "distinct_batches": 8,
+    "cold_batches_measured": 0,
+    "distinct_batches": 0,
+    "distinct_batches_historical": 8,
     "failures": 0,
-    "latency_provenance": "cold network calls only; cache hits contribute no latency",
-    "ms_per_item_amortised": 585.5168319837729,
-    "requests": 1,
+    "historical_meaning": "cold measurements recorded by the run that first made those calls; not this run",
+    "latency_meaning": "cold network calls made in this process only; cache hits contribute none",
+    "ms_per_item_amortised": null,
+    "ms_per_item_amortised_historical": 585.5168319837729,
+    "requests": 0,
     "tier": "smart",
-    "warm_cache_hits_excluded_from_latency": 7
+    "warm_cache_hits_excluded_from_latency": 8
   },
   "context_tokens": {
     "A_tokens": 59130,
@@ -37,43 +47,44 @@
   },
   "decision": "KEEP / TRUNCATE / DROP per history chunk, confidence-gated at 0.7 (uncertain -> KEEP)",
   "glm": {
-    "cache_hits": 13,
-    "cold_calls_recorded_from_cache": 13,
-    "completion_tokens": 1158,
-    "cost_usd_from_snapshot": 0.002699,
-    "cost_usd_from_usage": 0.004454,
+    "cache_hits": 15,
+    "cold_calls_recorded_from_cache": 15,
+    "completion_tokens": 0,
+    "cost_usd_from_snapshot": 0.0,
+    "cost_usd_from_usage": 0.0,
     "cost_usd_including_cache": 0.038388,
-    "failures": 1,
+    "failures": 0,
     "latency": {
+      "max_ms": null,
+      "mean_ms": null,
+      "n": 0,
+      "p50_ms": null,
+      "p95_ms": null
+    },
+    "latency_cold_only": {
+      "max_ms": null,
+      "mean_ms": null,
+      "n": 0,
+      "p50_ms": null,
+      "p95_ms": null
+    },
+    "latency_historical_from_cache": {
       "max_ms": 31281.819208001252,
       "mean_ms": 16353.885791598199,
       "n": 15,
       "p50_ms": 8188.08608299878,
       "p95_ms": 31281.819208001252
     },
-    "latency_cold_only": {
-      "max_ms": 6346.076207992155,
-      "mean_ms": 6153.608458495,
-      "n": 2,
-      "p50_ms": 6153.608458495,
-      "p95_ms": 6326.82943304244
-    },
-    "latency_provenance": "every entry is a cold call measurement: taken in this process for calls that went over the wire, or recorded on the original cold call for entries served from cache. Warm hits contribute no latency of their own.",
-    "latency_this_run_cold_only": {
-      "max_ms": 6346.076207992155,
-      "mean_ms": 6153.608458495,
-      "n": 2,
-      "p50_ms": 6153.608458495,
-      "p95_ms": 6326.82943304244
-    },
+    "latency_historical_meaning": "cold measurements recorded by the run that first made those calls; not this run.",
+    "latency_meaning": "cold calls made in this process only. Cache hits contribute no latency, and measurements recorded by an earlier run are reported separately under latency_historical_from_cache rather than mixed into this figure.",
     "model": "z-ai/glm-5.3-flash",
-    "prompt_tokens": 26132,
-    "requests": 2,
+    "prompt_tokens": 0,
+    "requests": 0,
     "tokens_including_cache": {
       "completion": 16687,
       "prompt": 212648
     },
-    "warm_cache_hits_excluded_from_latency": 13
+    "warm_cache_hits_excluded_from_latency": 15
   },
   "per_session": [
     {

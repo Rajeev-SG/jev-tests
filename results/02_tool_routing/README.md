@@ -68,9 +68,9 @@ architecture — the unsure items are genuinely hard for both.
 
 | | value |
 |---|---|
-| Jev | 0.61 top-1, ≈6 ms/decision amortised in batch, $0.00 measured |
-| Jev direct-API equivalent | $0.0038 for 1,265 decisions at $0.042/1M input tokens |
-| GLM sample | 90 calls, 36k+29k tokens, **$0.0187 measured**, p50 5,259 ms, p95 14,372 ms |
+| Jev | 0.61 top-1, $0.00 measured. No latency figure: every fast response in this partial run came from cache |
+| Jev direct-API equivalent | $0.0229 for 1,265 decisions at $0.042/1M input tokens (≈$0.018 per 1,000) |
+| GLM sample | 90 calls, 36k+29k tokens, **$0.0187 measured**, p50 5,259 ms, p95 14,372 ms (recorded) |
 | illustrative GLM cost | $0.134 per 1,000 decisions |
 
 ## What this means

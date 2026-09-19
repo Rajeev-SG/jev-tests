@@ -31,13 +31,15 @@ deliberately not used as proof of safety.
 | method | reviews avoided | recall of needed review | false skips |
 |---|---|---|---|
 | always review (baseline) | 0 | 1.000 | – |
-| deterministic rules (size + path patterns) | 13 (12.7%) | 0.850 | 15% |
+| deterministic rules (size + path patterns) | 13 (12.7%) | 0.850 | 69% (9 of 13) |
 | **Jev gate, ≥0.7** | **29 (28.4%)** | **0.650** | **72%** |
 | GLM-5.3-Flash gate (59-PR sample) | 21 (35.6%) | 0.644 | 100% |
 
 Missed examples at the ≥0.7 setting include `ad-platform-intelligence#50, #49,
 #42, #40, #38, #37, #35, #28` and `codex-home#117, #116`. The cheap rule
-baseline is both safer (recall 0.85) and honest about what it does.
+baseline is less bad — recall 0.85 against 0.65 — but it still gets 9 of its 13
+skips wrong, so it is not a skip gate either; it is a shortcut for changes that
+are obviously safe by construction (docs, one-line edits).
 
 Full gate curve is in `summary.json` under `jev_gate_curve`; it is monotone in
 the wrong direction for a skip decision — raising the confidence threshold
@@ -46,7 +48,7 @@ removes few decisions and only slowly improves recall.
 ## Cost and latency
 
 - Jev: 204 classifications (two narrow questions per PR), $0.00 measured.
-- GLM sample: 59 calls, ≈197 prompt tokens per PR, **$0.0104 measured**.
+- GLM sample: 59 calls, ≈197 prompt tokens per PR, **$0.0108 recorded spend**.
 - Illustrative full review of all 102 PRs at this token count: **$0.0095** —
   a lower bound, because a real reviewer reads the patch, not just the diff
   summary.

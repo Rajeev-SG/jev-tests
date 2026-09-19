@@ -99,7 +99,7 @@ _SCANNER_PATTERNS = [
         r"(?i)[?&](access_token|refresh_token|id_token|client_secret|api_key|apikey|auth)="
         r"(?!\[redacted)[^\s&\"']{8,}")),
     ("bearer-header", re.compile(r"(?i)\bbearer\s+(?!\[redacted)[A-Za-z0-9._\-]{16,}")),
-    ("cookie-header", re.compile(r"(?i)\b(set-)?cookie:\s*[^\s]{0,40}(session|token|auth)[^\s]{0,20}=")),
+    ("cookie-header", re.compile(r"(?i)\b(set-)?cookie:\s*[^\n]{0,80}?(session|token|auth)[^\s=;]{0,20}=(?!\[redacted)[^;\s]+")),
     ("key-value-secret", re.compile(
         r"(?i)\b(authorization|api[_-]?key|password|passwd|secret|client_secret|access_token|refresh_token)\b"
         r"\s*[:=]\s*[\"']?(?!\[redacted)[^\s\"',{]{8,}")),
@@ -111,14 +111,16 @@ class SecretDetected(RuntimeError):
 
 
 def scan_for_secrets(text: str) -> list[tuple[str, str]]:
-    """Return [(kind, snippet)] for credential-shaped strings in `text`.
+    """Return [(kind, location)] for credential-shaped strings in `text`.
 
-    The snippet is truncated so a scanner hit never re-prints the secret.
+    The location is `offset:<n>/<len>` and never contains any part of the
+    matched text: a scanner hit must not become a new way for a credential
+    fragment to reach a log or a committed artefact.
     """
     findings = []
     for kind, pattern in _SCANNER_PATTERNS:
         for match in pattern.finditer(text):
-            findings.append((kind, match.group(0)[:12] + "\u2026"))
+            findings.append((kind, f"offset:{match.start()}/{len(match.group(0))} chars"))
     return findings
 
 
@@ -153,6 +155,10 @@ _SECRET_PATTERNS = [
     (re.compile(r"\bGOCSPX-[A-Za-z0-9_\-]{10,}"), "[redacted-google-client-secret]"),
     (re.compile(r"(?i)([?&](?:access_token|refresh_token|id_token|client_secret|api_key|apikey|auth)=)[^\s&\"']{8,}"), r"\1[redacted]"),
     (re.compile(r"(?i)(\bbearer\s+)[A-Za-z0-9._\-]{16,}"), r"\1[redacted]"),
+    # Cookie headers are the common shape in recorded browser sessions, so they
+    # must be redactable, not just detectable: the scanner and the redactor have
+    # to cover the same ground or the gate is fail-closed on real data.
+    (re.compile(r"(?i)((?:set-)?cookie:[^\n]{0,80}?(?:session|token|auth)[^\s=;]{0,20}=)[^;\s]+"), r"\1[redacted]"),
 ]
 
 
@@ -224,6 +230,7 @@ class ClassifierDev:
         self.cold_latencies: list[float] = []
         self.recorded_cold_ms: list[float] = []
         self.observed: list[tuple[float, int]] = []
+        self.historical_observed: list[tuple[float, int]] = []
         self.warm_hits = 0
         self.classifications = 0
 
@@ -306,8 +313,8 @@ class ClassifierDev:
             was_cached = True
             batch_ms = entry.get("cold_ms")
             if batch_ms:
-                # a genuine cold measurement, recorded when the entry was written
-                self.observed.append((batch_ms, len(chunk)))
+                # a genuine cold measurement, but taken by an earlier run
+                self.historical_observed.append((batch_ms, len(chunk)))
                 self.recorded_cold_ms.append(batch_ms)
         else:
             try:
@@ -340,24 +347,32 @@ class ClassifierDev:
         return results
 
     def stats(self):
-        # Every entry in `observed` is a measurement taken while a request was
-        # actually in flight. Cache hits contribute no latency of their own, so
-        # a warm rerun cannot inflate or shift the distribution.
+        # `observed` holds only measurements taken in this process while a
+        # request was in flight. Cold measurements recorded by an earlier run are
+        # reported separately: a rerun cannot present another run's timings as
+        # its own, and a warm hit contributes no latency at all.
         batches = {ms: n for ms, n in self.observed}
         total_ms = sum(ms for ms, _ in self.observed)
         total_items = sum(n for _, n in self.observed)
+        hist_batches = {ms: n for ms, n in self.historical_observed}
+        hist_ms = sum(ms for ms, _ in self.historical_observed)
+        hist_items = sum(n for _, n in self.historical_observed)
         return {
             "tier": self.tier,
             "requests": self.requests,
             "cache_hits": self.cache_hits,
             "failures": self.failures,
             "classifications": self.classifications,
-            "latency_provenance": "cold network calls only; cache hits contribute no latency",
+            "latency_meaning": "cold network calls made in this process only; cache hits contribute none",
             "cold_batches_measured": len(self.observed),
             "warm_cache_hits_excluded_from_latency": self.warm_hits,
             "batch_latency": latency_summary([ms for ms, _ in self.observed]),
             "ms_per_item_amortised": (total_ms / total_items) if total_items else None,
+            "batch_latency_historical_from_cache": latency_summary([ms for ms, _ in self.historical_observed]),
+            "ms_per_item_amortised_historical": (hist_ms / hist_items) if hist_items else None,
+            "historical_meaning": "cold measurements recorded by the run that first made those calls; not this run",
             "distinct_batches": len(batches),
+            "distinct_batches_historical": len(hist_batches),
             "cache_entries": self.cache.hits(),
         }
 
@@ -532,12 +547,14 @@ class GLM:
                 "completion": self.completion_tokens + self.cached_completion_tokens,
             },
             "cost_usd_including_cache": round(self.reported_cost + self.cached_cost, 6),
-            "latency_provenance": (
-                "every entry is a cold call measurement: taken in this process for calls that "
-                "went over the wire, or recorded on the original cold call for entries served "
-                "from cache. Warm hits contribute no latency of their own."),
-            "latency": latency_summary(self.latencies + self.cached_cold_ms),
-            "latency_this_run_cold_only": latency_summary(self.latencies),
+            "latency": latency_summary(self.latencies),
+            "latency_meaning": (
+                "cold calls made in this process only. Cache hits contribute no latency, "
+                "and measurements recorded by an earlier run are reported separately under "
+                "latency_historical_from_cache rather than mixed into this figure."),
+            "latency_historical_from_cache": latency_summary(self.cached_cold_ms),
+            "latency_historical_meaning": (
+                "cold measurements recorded by the run that first made those calls; not this run."),
             "cold_calls_recorded_from_cache": len(self.cached_cold_ms),
             "warm_cache_hits_excluded_from_latency": self.cache_hits,
             "latency_cold_only": latency_summary(self.latencies),

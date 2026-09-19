@@ -64,7 +64,7 @@ decisions and should not be trusted for rare deterministic actions.
 ## Cost and latency
 
 - Measured classifier.dev spend: $0.00 (free tier).
-- Jev: 400 classifications in 7 requests, **246 ms/item amortised**.
+- Jev: 400 classifications in 7 requests, **246 ms/item amortised** (recorded on the cold run).
 - GLM-5.3-Flash: 52 calls, ≈359 prompt tokens per decision, **$0.0114 measured**.
 
 Jev is roughly an order of magnitude faster per decision and free, which is the

@@ -9,14 +9,24 @@
       "p50_ms": null,
       "p95_ms": null
     },
+    "batch_latency_historical_from_cache": {
+      "max_ms": null,
+      "mean_ms": null,
+      "n": 0,
+      "p50_ms": null,
+      "p95_ms": null
+    },
     "cache_entries": 45,
     "cache_hits": 0,
     "classifications": 0,
     "cold_batches_measured": 0,
     "distinct_batches": 0,
+    "distinct_batches_historical": 0,
     "failures": 0,
-    "latency_provenance": "cold network calls only; cache hits contribute no latency",
+    "historical_meaning": "cold measurements recorded by the run that first made those calls; not this run",
+    "latency_meaning": "cold network calls made in this process only; cache hits contribute none",
     "ms_per_item_amortised": null,
+    "ms_per_item_amortised_historical": null,
     "requests": 0,
     "tier": "fast",
     "warm_cache_hits_excluded_from_latency": 0

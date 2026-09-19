@@ -4,11 +4,12 @@
 filter on two of the six use cases tested, and is not proven on the other four.
 No case justified replacing a GLM call outright.**
 
-Measured spend for the whole programme: **at least $0.11** (543 GLM-5.3-Flash
-calls, OpenRouter), counted from the original billed amounts recorded on each
-cached call. It is a lower bound: retried calls that were billed but not cached
-are not included. classifier.dev and Jev cost **$0.00** inside its free tier.
-Budget was $5.
+Measured spend for the whole programme: **at least $0.11** of GLM-5.3-Flash
+calls on OpenRouter — $0.104 of it visible in the per-test summaries
+(`cost_usd_including_cache`) plus superseded rounds still in the response cache.
+It is a lower bound: a retried call that was billed but not cached is not
+counted. classifier.dev and Jev cost **$0.00** inside its free tier. Budget
+was $5.
 
 Model identity: classifier.dev's fast tier *is* Jev (`jev-1.13.0`). Direct Jev
 (TypeSafe key) is not available on this machine, so every Jev figure here is
@@ -33,14 +34,21 @@ benchmarks on their own sessions should treat the residual risk as real.
 
 ## Table
 
-| # | Use case | Decision | Verdict | Measured quality | Jev latency | LLM latency | Cost per 1k decisions | Expensive calls avoided |
+<!-- BEGIN GENERATED TABLE -->
+
+| # | Use case | Decision | Verdict | Measured quality | Jev latency | LLM latency | Cost | Expensive calls avoided |
 |---|---|---|---|---|---|---|---|---|
-| 1 | adpi corpus sieve | worth synthesis vs not | **NOT PROVEN** | 0.886 accuracy vs 0.889 always-keep; drop precision 0.47; 2.7% false-negative | 28.6 ms/record amortised (p50 2.1 s per 100-record batch) | GLM p50 3.6 s, p95 11.2 s per call | Jev $0.002 direct-API equivalent; GLM $0.086 per corpus pass | 4.5% of records, 53% of those useful |
-| 2 | coding-agent tool routing | which tool family next | **NOT PROVEN as a router; USE AS PRIOR** | top-1 0.613, **top-2 0.870** vs majority 0.416, repeat-last 0.549, GLM 0.422 | ≈6 ms/decision amortised | GLM p50 5.3 s, p95 14.4 s | Jev $0.003; GLM $0.134 | none at 98% accuracy; 12.8% coverage at 90% accuracy |
-| 3 | context pruning | KEEP / TRUNCATE / DROP per history unit | **NOT PROVEN** | 0% of context removed at a safe 0.7 gate; raw drops 17–27% but low-confidence | 585 ms/unit (smart tier) | GLM p50 seconds | Jev $0.006; GLM replay $0.013 for 5 calls | 0% |
-| 4 | PR review gate | skip the reviewer? | **NOT PROVEN for skipping** | avoids 28.4% of reviews, recall 0.650, **72% of skips were wrong**; rules avoid 12.7% at 0.850 recall | batch, sub-second | GLM sample 197 prompt tokens/PR | Jev $0.001; GLM $0.0095 for 102 full reviews | 28% of reviews, at an unacceptable miss rate |
-| 5 | retrieval → relevance gate | keep chunk or not | **NOT PROVEN — blocked** | 0 of 27 retrieval pools contained any file the session used; pools were 1–2 documents | n/a | n/a | n/a | unmeasurable |
-| 6 | browser next-action | inspect / click / type / … | **USE AS GATE** | raw 0.680 vs majority 0.865; **≥0.7 confidence: 63.2% coverage at 97.2% accuracy** | 246 ms/decision | GLM 0.689 accuracy, seconds per call | Jev $0.00; GLM $0.10 measured for the sample | 63% of planner turns on the confident subset |
+| 1 | adpi corpus sieve | worth synthesis vs not | **NOT PROVEN** | 0.886 accuracy vs 0.889 always-keep; drop precision 0.47; 2.7% false-negative; GLM agrees with the label only 0.52 | 28.6 ms/decision (recorded run) | p50 3576 / p95 11194 ms (recorded run) | Jev $0.0018 direct-API equivalent; GLM $0.0249 measured; illustrative corpus pass $0.086 -> $0.082 | 4.5% of records (38 of 837) |
+| 2 | coding-agent tool routing | which tool family next | **PRIOR ONLY** | top-1 0.61 / top-2 0.87 vs majority 0.42 / repeat-last 0.55 / GLM 0.42 over 1265 decisions | n/a | p50 5259 / p95 14372 ms (recorded run) | Jev $0.0229 direct-API equivalent; GLM $0.0187; $0.134 per 1k decisions illustrative | none at 98% accuracy; 12.8% coverage at 0.90 |
+| 3 | context pruning | KEEP / TRUNCATE / DROP per history unit | **NOT PROVEN** | 0.0% of context removed at a 0.7 gate; 309 kept / 0 truncated / 0 dropped over 309 chunks in 5 sessions | 585.5 ms/decision (recorded run) | p50 8188 / p95 31282 ms (recorded run) | Jev $0.00 measured; GLM $0.0384 recorded | 0% |
+| 4 | PR review gate | skip the reviewer? | **NOT PROVEN for skipping** | 28.4% of reviews avoided, recall 0.65, 72% of skips wrong; rules avoid 12.7% at 0.85 recall over 102 PRs | 253.7 ms/decision (recorded run) | p50 5613 / p95 10870 ms (recorded run) | Jev $0.00 measured; GLM $0.0108; illustrative full review of all 102 PRs $0.0095 | 28.4%, at a 0.72 false-skip rate |
+| 5 | retrieval -> relevance gate | keep chunk or not | **NOT PROVEN — BLOCKED** | 0 of 27 retrieval pools contained any file the session used; pool sizes [1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2] | n/a | n/a | $0.00, no calls needed to establish the blocker | unmeasurable |
+| 6 | browser next-action | inspect / click / type / ... | **USE AS GATE** | raw 0.68 vs majority 0.86 and GLM 0.69; >=0.7 confidence: 63.2% coverage at 0.97 accuracy over 400 scored decisions | 246.3 ms/decision (recorded run) | p50 4850 / p95 17397 ms (recorded run) | Jev $0.00; GLM $0.0114 | 63.2% of planner turns on the confident subset |
+
+<!-- END GENERATED TABLE -->
+
+Table generated from the committed `results/*/summary.json` and `cost.json` by
+`python3 tests/render_results.py` (`--check` fails if it drifts).
 
 ## Where to use it
 
@@ -51,9 +59,9 @@ call — `state → Jev (classifier.dev) → if confidence ≥ 0.7 and the predi
 action is inspect or click, execute it; otherwise call the planner`.
 
 **Why:** 63.2% of next-action decisions can be taken at 97.2% accuracy, at
-246 ms and $0 instead of seconds and ~$0.10 per 1k planner calls. The two
-actions it handles well (`inspect` recall 0.70, `click` 0.65) are 93% of the
-recorded real-work decisions.
+246 ms per decision (recorded) and $0 instead of seconds per call and about
+$0.19 per 1,000 planner calls. The two actions it handles well (`inspect`
+recall 0.70, `click` 0.65) are 96.4% of the recorded real-work decisions.
 
 **Do not** let it own rare deterministic actions: `type`, `wait` and `navigate`
 recall were 0.00 in this sample.
@@ -62,7 +70,8 @@ recall were 0.00 in this sample.
 
 **Integration point:** before a reasoning turn, give the model Jev's top-2
 families as a hint, not as a decision. Top-2 is 0.870 against a 0.416 majority
-baseline, at 6 ms and $0.003 per 1k decisions.
+baseline; the whole 1,265-decision run cost $0.023 in direct-API terms, about
+$0.018 per 1,000 decisions.
 
 **Do not** use it as a router that skips the model: the ≥98% accuracy criterion
 the issue set is not met anywhere on the confidence curve (best 93.6% at 3.7%
@@ -73,9 +82,10 @@ coverage).
 1. **In front of the adpi synthesis layer.** It removes 4.5% of records and gets
    53% of the removals wrong. The ground-truth label itself is weak — GLM agreed
    with it only 52% of the time.
-2. **As a PR review skip gate.** 72% of its skips needed review. The
-   deterministic rules are safer (12.7% avoided, 0.85 recall) and a full review
-   costs $0.0001 per PR anyway.
+2. **As a PR review skip gate.** 72% of its skips needed review (21 of 29).
+   The deterministic rules are less bad (12.7% avoided, 0.85 recall, but 9 of
+   13 skips wrong), and a full review costs about $0.0001 per PR anyway — there
+   is almost nothing to save and a defect to miss.
 3. **To prune coding-agent context.** At a safe gate it prunes nothing; its drop
    judgements are its least confident ones.
 4. **Between retrieval and the coding model** — unmeasured, because the local
@@ -86,7 +96,7 @@ coverage).
 - **Calibrated confidence is Jev's real value, not raw accuracy.** On three of
   six tests the majority class beat Jev on overall accuracy, yet the
   confidence-gated slice was consistently strong (0.97 on Test 6; 0.90 at 13%
-  coverage on Test 2; 0.96 at 54% coverage on Test 1). The gate pattern — act
+  coverage on Test 2; 0.94 at 55% coverage on Test 1). The gate pattern — act
   only when confident, escalate the rest — is what the data supports.
 - **GLM-5.3-Flash is a weak cheap classifier.** It lost to Jev on Test 2
   (0.422 vs 0.613) and to the majority class on Test 6, and was only 26%
@@ -120,20 +130,31 @@ reproduces the numbers without new spend. Prices come from
 
 ## How latency and cost figures are produced
 
-Both clients report latency with an explicit provenance field:
+Both clients keep this-run measurements and earlier-run recordings apart, and
+each summary carries fields that say which is which:
 
-- **classifier.dev** (`classifier_dev_*` in each summary): `batch_latency` and
-  `ms_per_item_amortised` are built only from calls that actually went over the
-  wire, or from the cold measurement recorded on the cache entry when it was
-  written. Cache hits contribute no latency of their own
-  (`warm_cache_hits_excluded_from_latency` counts them).
-- **GLM** (`glm` in each summary): `latency` covers cold measurements, taken in
-  this process or recorded on the original cold call; `latency_this_run_cold_only`
-  is the strictly-this-run figure.
+- **classifier.dev** (`classifier_dev_*`): `batch_latency` and
+  `ms_per_item_amortised` cover cold calls made in the process that wrote the
+  artefact. `batch_latency_historical_from_cache` and
+  `ms_per_item_amortised_historical` hold cold measurements recorded by an
+  earlier run, with `historical_meaning` spelling that out. Cache hits
+  contribute no latency (`warm_cache_hits_excluded_from_latency`).
+- **GLM** (`glm`): `latency` is this run's cold calls;
+  `latency_historical_from_cache` is what earlier runs recorded. Where a
+  regenerated summary had no cold calls, the human-readable tables quote the
+  historical field and say so.
 - **Cost**: `cost_usd_including_cache` sums the billed amounts recorded on every
   call that was made, including ones later served from cache. That is spend that
   really happened, and it is a lower bound because a billed failed call is not
   cached.
+
+Every number in this file and in `results/*/README.md` comes from the committed
+`summary.json` / `cost.json` at this commit. Where a figure had to come from a
+recorded earlier run rather than the regeneration, the text says "recorded".
+
+The table above is generated: `python3 tests/render_results.py` prints it and
+`--check` exits non-zero if RESULTS.md disagrees with the artefacts, so the two
+cannot drift apart silently.
 
 ## Honest limitations
 
