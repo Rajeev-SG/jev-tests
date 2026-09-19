@@ -29,14 +29,17 @@
       "p50_ms": null,
       "p95_ms": null
     },
-    "cache_entries": 40,
+    "cache_entries": 45,
     "cache_hits": 0,
     "classifications": 0,
+    "cold_batches_measured": 0,
     "distinct_batches": 0,
     "failures": 0,
+    "latency_provenance": "cold network calls only; cache hits contribute no latency",
     "ms_per_item_amortised": null,
     "requests": 0,
-    "tier": "fast"
+    "tier": "fast",
+    "warm_cache_hits_excluded_from_latency": 0
   },
   "classifier_dev_fast_smart_escalation": {
     "ran": false,
@@ -158,6 +161,7 @@
   ],
   "glm": {
     "cache_hits": 90,
+    "cold_calls_recorded_from_cache": 90,
     "completion_tokens": 0,
     "cost_usd_from_snapshot": 0.0,
     "cost_usd_from_usage": 0.0,
@@ -177,13 +181,22 @@
       "p50_ms": null,
       "p95_ms": null
     },
+    "latency_provenance": "every entry is a cold call measurement: taken in this process for calls that went over the wire, or recorded on the original cold call for entries served from cache. Warm hits contribute no latency of their own.",
+    "latency_this_run_cold_only": {
+      "max_ms": null,
+      "mean_ms": null,
+      "n": 0,
+      "p50_ms": null,
+      "p95_ms": null
+    },
     "model": "z-ai/glm-5.3-flash",
     "prompt_tokens": 0,
     "requests": 0,
     "tokens_including_cache": {
       "completion": 29261,
       "prompt": 36171
-    }
+    },
+    "warm_cache_hits_excluded_from_latency": 90
   },
   "glm_vs_jev": {
     "agreement": 0.43333333333333335

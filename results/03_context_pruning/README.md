@@ -50,7 +50,7 @@ inconclusive; it is reported here rather than hidden.
 | | value |
 |---|---|
 | Jev | 309 classifications, 8 requests, 585 ms/item amortised (smart tier; no fast-tier quota left today) |
-| GLM replay | 5 calls, 71k+7k tokens, $0.0132 measured |
+| GLM replay | 7 calls across runs, ≈$0.038 recorded spend |
 
 ## What this means
 

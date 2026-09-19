@@ -23,17 +23,18 @@ pipeline could not act on it. That labels **93 low-value / 744 worth (88.9%)**.
 |---|---|---|---|---|
 | always keep (baseline) | 0.889 | n/a | 0 | 0 |
 | nav-word heuristic | 0.799 | 0.088 | 91 (10.9%) | 83 |
-| **classifier.dev fast (Jev)** | **0.882** | **0.406** | **32 (3.8%)** | **19** |
-| Jev + smart escalation (<0.7) | 0.871 | 0.347 | 49 (5.9%) | 32 |
+| **classifier.dev fast (Jev)** | **0.886** | **0.474** | **38 (4.5%)** | **20** |
+| Jev + smart escalation (<0.7) | 0.878 | 0.390 | 41 (4.9%) | 25 |
 
-- Jev's accuracy (0.882) is **below** the always-keep baseline (0.889). It is
-  good at not losing useful records (2.6% false-negative rate) but it removes
-  only 3.8% of the corpus, and 59% of what it removes is actually useful.
+- Jev's accuracy (0.886) is **below** the always-keep baseline (0.889). It is
+  good at not losing useful records (2.7% false-negative rate) but it removes
+  only 4.5% of the corpus, and 53% of what it removes is actually useful.
 - Both tiers get worse once the outputs are combined: the smart tier's extra
   removals include more useful records than low-value ones.
-- Confidence is not well calibrated for this task: at ≥0.95 auto-accuracy is
-  0.961 on 54.5% coverage, but that "accuracy" is dominated by the 89% base
-  rate, not by skill on the low-value records.
+- Confidence is not calibrated for this task: accuracy is 0.675 in the
+  [0.0, 0.5) bucket, 0.887 in [0.7, 0.9) and 0.933 in [0.9, 1.0). The ≥0.95
+  operating point is 0.944 accuracy at 55.1% coverage — dominated by the 89%
+  base rate, not by skill on the low-value records.
 
 ## The ground truth is the real problem
 
@@ -47,16 +48,20 @@ synthesising". Jev and GLM agree with each other 73.9% of the time.
 
 | | value |
 |---|---|
-| records sieved | 837 in 1 batch |
-| Jev batch latency | 5,123 ms (6.1 ms/record amortised) |
+| records sieved | 837, in 9 batches of 100 |
+| Jev batch latency | p50 2,143 ms per 100-record batch; 28.6 ms/record amortised |
 | Jev cost (measured) | $0.00 (classifier.dev free tier) |
 | Jev cost (direct-API equivalent) | $0.0018 for the whole corpus at $0.042/1M input tokens |
-| GLM-5.3-Flash sample cost (measured) | $0.0021 this run, $0.026 across all runs |
+| GLM cost measured across all runs | $0.0249 (includes a superseded first round) |
 | GLM latency | p50 3,576 ms, p95 11,194 ms per call |
-| illustrative GLM cost, full corpus | $0.110 unsieved vs $0.106 sieved — a 3.8% saving |
+| illustrative GLM cost, full corpus | $0.086 unsieved vs $0.082 sieved — a 4.5% saving |
 
-A 3.8% sieve saves 3.8% of downstream spend. At this corpus size that is
-$0.004.
+A 4.5% sieve saves 4.5% of downstream spend. At this corpus size that is about
+$0.005.
+
+Batch composition moves the result: an earlier run of the same harness with all
+837 records in one request dropped 32 records (3.8%) instead of 38 (4.5%).
+Treat "about 4% removed" as the finding and do not read the last digit.
 
 ## What this does and does not prove
 

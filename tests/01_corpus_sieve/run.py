@@ -280,10 +280,17 @@ def cost_summary(records, texts, fast_pred, glm_stats):
     dropped = total - kept
     input_tokens = sum(jb.approx_tokens(t) for t in texts)
 
-    # Empirical per-record LLM cost from the GLM sample, if we have one.
-    if glm_stats and glm_stats["requests"]:
-        prompt_per_record = glm_stats["prompt_tokens"] / glm_stats["requests"]
-        completion_per_record = glm_stats["completion_tokens"] / glm_stats["requests"]
+    # Empirical per-record LLM cost from the GLM sample, if we have one. Token
+    # totals include calls served from cache on a rerun, so the mean stays the
+    # measured one instead of falling back to a guess.
+    calls = 0
+    if glm_stats:
+        calls = glm_stats.get("requests", 0) + glm_stats.get("cache_hits", 0)
+    if glm_stats and calls:
+        prompt_total = glm_stats.get("tokens_including_cache", {}).get("prompt", glm_stats["prompt_tokens"])
+        completion_total = glm_stats.get("tokens_including_cache", {}).get("completion", glm_stats["completion_tokens"])
+        prompt_per_record = prompt_total / calls
+        completion_per_record = completion_total / calls
     else:
         prompt_per_record, completion_per_record = 220.0, 25.0
     llm_full = jb.glm_equivalent_cost(prompt_per_record * total, completion_per_record * total)

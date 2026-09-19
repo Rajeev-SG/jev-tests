@@ -4,8 +4,10 @@
 filter on two of the six use cases tested, and is not proven on the other four.
 No case justified replacing a GLM call outright.**
 
-Measured spend for the whole programme: **$0.11** (543 GLM-5.3-Flash calls,
-OpenRouter). classifier.dev and Jev cost **$0.00** inside its free tier.
+Measured spend for the whole programme: **at least $0.11** (543 GLM-5.3-Flash
+calls, OpenRouter), counted from the original billed amounts recorded on each
+cached call. It is a lower bound: retried calls that were billed but not cached
+are not included. classifier.dev and Jev cost **$0.00** inside its free tier.
 Budget was $5.
 
 Model identity: classifier.dev's fast tier *is* Jev (`jev-1.13.0`). Direct Jev
@@ -13,11 +15,27 @@ Model identity: classifier.dev's fast tier *is* Jev (`jev-1.13.0`). Direct Jev
 classifier.dev over HTTP; the direct-API cost is reported alongside as an
 illustrative figure at $0.042 / 1M input tokens.
 
+## Residual privacy risk, stated plainly
+
+Session-derived inputs (task titles, working directories, tool result excerpts)
+**are sent to two third-party endpoints**: classifier.dev and OpenRouter. The
+protection is a redactor plus a scanner gate: every payload is scrubbed of
+credential-shaped strings and then scanned, and a scanner hit raises
+`SecretDetected` and fails the benchmark rather than sending. The scanner covers
+OAuth tokens in query parameters, bearer headers, key=value secrets and the
+known key prefixes.
+
+That is pattern-based protection, not a guarantee. A credential in a shape
+neither regex list knows about would pass through. This risk is accepted here
+because the samples are truncated to a few hundred characters of decision
+context and were screened with zero findings, but anyone running these
+benchmarks on their own sessions should treat the residual risk as real.
+
 ## Table
 
 | # | Use case | Decision | Verdict | Measured quality | Jev latency | LLM latency | Cost per 1k decisions | Expensive calls avoided |
 |---|---|---|---|---|---|---|---|---|
-| 1 | adpi corpus sieve | worth synthesis vs not | **NOT PROVEN** | 0.882 accuracy vs 0.889 always-keep; drop precision 0.41; 2.6% false-negative | 6.1 ms/record (837 in one batch: 5.1 s) | GLM p50 3.6 s, p95 11.2 s per call | Jev $0.0014; GLM $0.106 | 3.8% of records, 59% of those useful |
+| 1 | adpi corpus sieve | worth synthesis vs not | **NOT PROVEN** | 0.886 accuracy vs 0.889 always-keep; drop precision 0.47; 2.7% false-negative | 28.6 ms/record amortised (p50 2.1 s per 100-record batch) | GLM p50 3.6 s, p95 11.2 s per call | Jev $0.002 direct-API equivalent; GLM $0.086 per corpus pass | 4.5% of records, 53% of those useful |
 | 2 | coding-agent tool routing | which tool family next | **NOT PROVEN as a router; USE AS PRIOR** | top-1 0.613, **top-2 0.870** vs majority 0.416, repeat-last 0.549, GLM 0.422 | ≈6 ms/decision amortised | GLM p50 5.3 s, p95 14.4 s | Jev $0.003; GLM $0.134 | none at 98% accuracy; 12.8% coverage at 90% accuracy |
 | 3 | context pruning | KEEP / TRUNCATE / DROP per history unit | **NOT PROVEN** | 0% of context removed at a safe 0.7 gate; raw drops 17–27% but low-confidence | 585 ms/unit (smart tier) | GLM p50 seconds | Jev $0.006; GLM replay $0.013 for 5 calls | 0% |
 | 4 | PR review gate | skip the reviewer? | **NOT PROVEN for skipping** | avoids 28.4% of reviews, recall 0.650, **72% of skips were wrong**; rules avoid 12.7% at 0.850 recall | batch, sub-second | GLM sample 197 prompt tokens/PR | Jev $0.001; GLM $0.0095 for 102 full reviews | 28% of reviews, at an unacceptable miss rate |
@@ -52,8 +70,8 @@ coverage).
 
 ## Where not to use it
 
-1. **In front of the adpi synthesis layer.** It removes 3.8% of records and gets
-   59% of the removals wrong. The ground-truth label itself is weak — GLM agreed
+1. **In front of the adpi synthesis layer.** It removes 4.5% of records and gets
+   53% of the removals wrong. The ground-truth label itself is weak — GLM agreed
    with it only 52% of the time.
 2. **As a PR review skip gate.** 72% of its skips needed review. The
    deterministic rules are safer (12.7% avoided, 0.85 recall) and a full review
@@ -99,6 +117,23 @@ reproduces the numbers without new spend. Prices come from
 `pricing/pricing-2026-09-19.json`, read from OpenRouter and classifier.dev on
 2026-09-19. Session-derived samples and private-repo PR data stay local
 (`.gitignore`); aggregate results are committed.
+
+## How latency and cost figures are produced
+
+Both clients report latency with an explicit provenance field:
+
+- **classifier.dev** (`classifier_dev_*` in each summary): `batch_latency` and
+  `ms_per_item_amortised` are built only from calls that actually went over the
+  wire, or from the cold measurement recorded on the cache entry when it was
+  written. Cache hits contribute no latency of their own
+  (`warm_cache_hits_excluded_from_latency` counts them).
+- **GLM** (`glm` in each summary): `latency` covers cold measurements, taken in
+  this process or recorded on the original cold call; `latency_this_run_cold_only`
+  is the strictly-this-run figure.
+- **Cost**: `cost_usd_including_cache` sums the billed amounts recorded on every
+  call that was made, including ones later served from cache. That is spend that
+  really happened, and it is a lower bound because a billed failed call is not
+  cached.
 
 ## Honest limitations
 

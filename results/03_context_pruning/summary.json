@@ -2,24 +2,27 @@
   "classifier_dev_fast": {
     "batch_latency": {
       "max_ms": 37573.51004099473,
-      "mean_ms": 22583.471354120775,
+      "mean_ms": 22615.58763537323,
       "n": 8,
-      "p50_ms": 28245.43264599197,
+      "p50_ms": 28373.897771001793,
       "p95_ms": 36116.93122884826
     },
-    "cache_entries": 20,
-    "cache_hits": 0,
+    "cache_entries": 24,
+    "cache_hits": 7,
     "classifications": 309,
+    "cold_batches_measured": 8,
     "distinct_batches": 8,
     "failures": 0,
-    "ms_per_item_amortised": 584.6853425015088,
-    "requests": 8,
-    "tier": "smart"
+    "latency_provenance": "cold network calls only; cache hits contribute no latency",
+    "ms_per_item_amortised": 585.5168319837729,
+    "requests": 1,
+    "tier": "smart",
+    "warm_cache_hits_excluded_from_latency": 7
   },
   "context_tokens": {
-    "A_tokens": 59413,
-    "B_tokens": 59413,
-    "C_tokens": 59413,
+    "A_tokens": 59130,
+    "B_tokens": 59130,
+    "C_tokens": 58620,
     "chunks": 309,
     "dropped": 0,
     "kept": 309,
@@ -34,28 +37,43 @@
   },
   "decision": "KEEP / TRUNCATE / DROP per history chunk, confidence-gated at 0.7 (uncertain -> KEEP)",
   "glm": {
-    "cache_hits": 10,
-    "completion_tokens": 6597,
-    "cost_usd_from_snapshot": 0.008385,
-    "cost_usd_from_usage": 0.013184,
-    "failures": 4,
+    "cache_hits": 13,
+    "cold_calls_recorded_from_cache": 13,
+    "completion_tokens": 1158,
+    "cost_usd_from_snapshot": 0.002699,
+    "cost_usd_from_usage": 0.004454,
+    "cost_usd_including_cache": 0.038388,
+    "failures": 1,
     "latency": {
       "max_ms": 31281.819208001252,
-      "mean_ms": 19543.09918319923,
+      "mean_ms": 16353.885791598199,
       "n": 15,
-      "p50_ms": 22035.5195000011,
+      "p50_ms": 8188.08608299878,
       "p95_ms": 31281.819208001252
     },
     "latency_cold_only": {
-      "max_ms": 31281.819208001252,
-      "mean_ms": 19543.09918319923,
-      "n": 5,
-      "p50_ms": 22035.5195000011,
-      "p95_ms": 30910.5205830012
+      "max_ms": 6346.076207992155,
+      "mean_ms": 6153.608458495,
+      "n": 2,
+      "p50_ms": 6153.608458495,
+      "p95_ms": 6326.82943304244
+    },
+    "latency_provenance": "every entry is a cold call measurement: taken in this process for calls that went over the wire, or recorded on the original cold call for entries served from cache. Warm hits contribute no latency of their own.",
+    "latency_this_run_cold_only": {
+      "max_ms": 6346.076207992155,
+      "mean_ms": 6153.608458495,
+      "n": 2,
+      "p50_ms": 6153.608458495,
+      "p95_ms": 6326.82943304244
     },
     "model": "z-ai/glm-5.3-flash",
-    "prompt_tokens": 71177,
-    "requests": 5
+    "prompt_tokens": 26132,
+    "requests": 2,
+    "tokens_including_cache": {
+      "completion": 16687,
+      "prompt": 212648
+    },
+    "warm_cache_hits_excluded_from_latency": 13
   },
   "per_session": [
     {
@@ -227,7 +245,7 @@
     },
     {
       "chunks_in_window": 52,
-      "confident_fraction": 0.1346153846153846,
+      "confident_fraction": 0.11538461538461539,
       "decisions": {
         "drop as no longer useful": 0,
         "keep in full": 52,
@@ -239,30 +257,30 @@
         "visible",
         "{"
       ],
-      "raw_drop_share": 0.17307692307692307,
+      "raw_drop_share": 0.19230769230769232,
       "replay": {
         "A": {
-          "completion_tokens": 1596,
-          "cost_usd": 0.00262401282,
-          "elapsed_ms": 22035.5195000011,
+          "completion_tokens": 526,
+          "cost_usd": 0.0022530915,
+          "elapsed_ms": 5961.140708997846,
           "paths_said": 0,
-          "prompt_tokens": 13478,
+          "prompt_tokens": 13419,
           "recall": 0.0
         },
         "B": {
-          "completion_tokens": 1596,
-          "cost_usd": 0.00262401282,
-          "elapsed_ms": 22035.5195000011,
+          "completion_tokens": 526,
+          "cost_usd": 0.0022530915,
+          "elapsed_ms": 5961.140708997846,
           "paths_said": 0,
-          "prompt_tokens": 13478,
+          "prompt_tokens": 13419,
           "recall": 0.0
         },
         "C": {
-          "completion_tokens": 1596,
-          "cost_usd": 0.00262401282,
-          "elapsed_ms": 22035.5195000011,
+          "completion_tokens": 632,
+          "cost_usd": 0.0022007205,
+          "elapsed_ms": 6346.076207992155,
           "paths_said": 0,
-          "prompt_tokens": 13478,
+          "prompt_tokens": 12713,
           "recall": 0.0
         }
       },
@@ -270,9 +288,9 @@
       "source": "codex",
       "title": "lets turn this automation-reports front-end into a real polished properly build tool, use the relevant design workflows/skills, stitch MCP, shadcn components - i want it to look and feel like vercel.\n\nI want properly researched optimal solutions for the rendering and viewing of logs, filesystem, rich markdown articles\n\nDeeply research UX best practices and build according to those\n\nand on a functional level, I want you to look at everything my automation system is doing and work out how we can further improve it, for example there is a lot of really useful data being produced by these automations, how can feed the outputs of some of these automations into other automations so that we can have the flawless, ultimate self-improving, agentic software delivery system\n\nmake sure this is all researched, fully delivered, no partials, i want evidence that you have built the ultimate rig, start now dont stop until complete",
       "tokens": {
-        "A_full": 11878,
-        "B_jev_pruned": 11878,
-        "C_recency": 11878
+        "A_full": 11595,
+        "B_jev_pruned": 11595,
+        "C_recency": 11085
       },
       "window_tokens": 11815
     },
@@ -330,7 +348,7 @@
     }
   ],
   "removed_fraction_B": 0.0,
-  "removed_fraction_C": 0.0,
+  "removed_fraction_C": 0.008625063419584023,
   "replay_paths_said": {
     "A": 2.6,
     "B": 2.6,

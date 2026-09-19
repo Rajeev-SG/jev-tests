@@ -74,9 +74,70 @@ def latency_summary(values):
 
 
 # --------------------------------------------------------------------------
-# redaction: nothing leaves this machine that looks like a credential
+# secret scanning: a gate, not a best-effort blocklist
 # --------------------------------------------------------------------------
 
+# High-precision credential shapes. A match here means the payload is NOT sent
+# to a third-party endpoint; the benchmark fails instead. These are the forms
+# seen in real session logs: OAuth tokens in query strings, bearer headers,
+# key=value secrets, and the well-known key prefixes.
+_SCANNER_PATTERNS = [
+    ("private-key", re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----")),
+    ("google-oauth-token", re.compile(r"\bya29\.[A-Za-z0-9_\-\.]{20,}")),
+    ("google-refresh-token", re.compile(r"\b1//0[A-Za-z0-9_\-]{20,}")),
+    ("google-client-secret", re.compile(r"\bGOCSPX-[A-Za-z0-9_\-]{10,}")),
+    ("openrouter-key", re.compile(r"\bsk-or-v1-[A-Za-z0-9]{16,}")),
+    ("api-key", re.compile(r"\bsk-[A-Za-z0-9._\-]{16,}")),
+    ("github-token", re.compile(r"\bgh[pousr]_[A-Za-z0-9]{20,}")),
+    ("slack-token", re.compile(r"\bxox[baprs]-[A-Za-z0-9-]{10,}")),
+    ("aws-key", re.compile(r"\bAKIA[0-9A-Z]{16}\b")),
+    ("classifier-key", re.compile(r"\bclassifier_pro_[A-Za-z0-9]{8,}")),
+    ("jwt", re.compile(r"\beyJ[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}")),
+    # secret-bearing query parameters and headers, which is how these usually
+    # appear in a captured browser or curl log
+    ("oauth-query-param", re.compile(
+        r"(?i)[?&](access_token|refresh_token|id_token|client_secret|api_key|apikey|auth)="
+        r"(?!\[redacted)[^\s&\"']{8,}")),
+    ("bearer-header", re.compile(r"(?i)\bbearer\s+(?!\[redacted)[A-Za-z0-9._\-]{16,}")),
+    ("cookie-header", re.compile(r"(?i)\b(set-)?cookie:\s*[^\s]{0,40}(session|token|auth)[^\s]{0,20}=")),
+    ("key-value-secret", re.compile(
+        r"(?i)\b(authorization|api[_-]?key|password|passwd|secret|client_secret|access_token|refresh_token)\b"
+        r"\s*[:=]\s*[\"']?(?!\[redacted)[^\s\"',{]{8,}")),
+]
+
+
+class SecretDetected(RuntimeError):
+    """Raised when a payload about to leave the machine still contains a credential."""
+
+
+def scan_for_secrets(text: str) -> list[tuple[str, str]]:
+    """Return [(kind, snippet)] for credential-shaped strings in `text`.
+
+    The snippet is truncated so a scanner hit never re-prints the secret.
+    """
+    findings = []
+    for kind, pattern in _SCANNER_PATTERNS:
+        for match in pattern.finditer(text):
+            findings.append((kind, match.group(0)[:12] + "\u2026"))
+    return findings
+
+
+def assert_no_secrets(text: str, where: str) -> None:
+    findings = scan_for_secrets(text)
+    if findings:
+        kinds = sorted({kind for kind, _ in findings})
+        raise SecretDetected(
+            f"refusing to send {where}: credential-shaped strings detected ({', '.join(kinds)}). "
+            f"Redact the source sample first; this gate exists because a real OAuth token "
+            f"reached a staged file once.")
+
+
+# --------------------------------------------------------------------------
+# redaction: applied to everything sent, before the scanner gate
+# --------------------------------------------------------------------------
+
+# High-precision credential shapes. A match here means the payload is NOT sent
+# to a third-party endpoint; the benchmark fails instead.
 _SECRET_PATTERNS = [
     (re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----.*?-----END [A-Z ]*PRIVATE KEY-----", re.S), "[redacted-private-key]"),
     (re.compile(r"\bsk-[A-Za-z0-9._\-]{16,}"), "[redacted-api-key]"),
@@ -90,6 +151,8 @@ _SECRET_PATTERNS = [
     (re.compile(r"\bya29\.[A-Za-z0-9_\-\.]{20,}"), "[redacted-google-oauth-token]"),
     (re.compile(r"\b1//0[A-Za-z0-9_\-]{20,}"), "[redacted-google-refresh-token]"),
     (re.compile(r"\bGOCSPX-[A-Za-z0-9_\-]{10,}"), "[redacted-google-client-secret]"),
+    (re.compile(r"(?i)([?&](?:access_token|refresh_token|id_token|client_secret|api_key|apikey|auth)=)[^\s&\"']{8,}"), r"\1[redacted]"),
+    (re.compile(r"(?i)(\bbearer\s+)[A-Za-z0-9._\-]{16,}"), r"\1[redacted]"),
 ]
 
 
@@ -154,8 +217,14 @@ class ClassifierDev:
         self.requests = 0
         self.cache_hits = 0
         self.failures = 0
-        self.batch_latencies: list[float] = []
+        # Latency accounting keeps cold calls and cache replays apart. Only a
+        # call that actually went over the wire contributes to `cold_latencies`;
+        # a cache hit contributes the cold measurement recorded when that entry
+        # was first written, and nothing else.
+        self.cold_latencies: list[float] = []
+        self.recorded_cold_ms: list[float] = []
         self.observed: list[tuple[float, int]] = []
+        self.warm_hits = 0
         self.classifications = 0
 
     def _post(self, body: dict) -> dict:
@@ -172,10 +241,9 @@ class ClassifierDev:
                 with urllib.request.urlopen(req, timeout=120, context=SSL_CONTEXT) as resp:
                     payload = json.loads(resp.read().decode())
                 elapsed_ms = (time.perf_counter() - started) * 1000
-                self.batch_latencies.append(elapsed_ms)
+                self.cold_latencies.append(elapsed_ms)
                 self.requests += 1
-                payload["_measured_batch_ms"] = elapsed_ms
-                return payload
+                return {"payload": payload, "cold_ms": elapsed_ms}
             except urllib.error.HTTPError as exc:
                 if exc.code in (429, 502, 503) and attempt < self.max_retries - 1:
                     retry_after = exc.headers.get("Retry-After") if exc.headers else None
@@ -202,6 +270,8 @@ class ClassifierDev:
         large batch is handled by splitting the batch in half and retrying.
         """
         texts = [redact(t) if self.redact_inputs else t for t in texts]
+        for index, text in enumerate(texts):
+            assert_no_secrets(text, f"input {index} to classifier.dev")
         out: list[dict] = []
         size = self.MAX_INPUTS[self.tier]
         for start in range(0, len(texts), size):
@@ -224,12 +294,24 @@ class ClassifierDev:
         key = self.cache.key(body)
         cached = self.cache.get(key) if self.use_cache else None
         if cached is not None:
+            # Entries written before the sidecar split hold a bare payload, and may
+            # carry the cold measurement that was stamped on it at the time.
+            if isinstance(cached, dict) and "payload" in cached:
+                entry = cached
+            else:
+                entry = {"payload": cached, "cold_ms": cached.get("_measured_batch_ms") if isinstance(cached, dict) else None}
+            payload = entry["payload"]
             self.cache_hits += 1
-            payload = cached
+            self.warm_hits += 1
             was_cached = True
+            batch_ms = entry.get("cold_ms")
+            if batch_ms:
+                # a genuine cold measurement, recorded when the entry was written
+                self.observed.append((batch_ms, len(chunk)))
+                self.recorded_cold_ms.append(batch_ms)
         else:
             try:
-                payload = self._post(body)
+                fresh = self._post(body)
             except urllib.error.HTTPError as exc:
                 if exc.code == 502 and len(chunk) > 20:
                     mid = len(chunk) // 2
@@ -237,10 +319,11 @@ class ClassifierDev:
                     return (self._classify_chunk(chunk[:mid], labels, instructions, multi, max_labels)
                             + self._classify_chunk(chunk[mid:], labels, instructions, multi, max_labels))
                 raise
-            self.cache.put(key, payload)
+            payload = fresh["payload"]
+            self.cache.put(key, fresh)
             was_cached = False
-        batch_ms = payload.get("_measured_batch_ms", 0.0)
-        self.observed.append((batch_ms, len(chunk)))
+            batch_ms = fresh["cold_ms"]
+            self.observed.append((batch_ms, len(chunk)))
         if len(payload["results"]) != len(chunk):
             raise RuntimeError(
                 f"classifier.dev returned {len(payload['results'])} results for "
@@ -257,7 +340,10 @@ class ClassifierDev:
         return results
 
     def stats(self):
-        batches = {ms: n for ms, n in self.observed}  # dedupe identical cached batches
+        # Every entry in `observed` is a measurement taken while a request was
+        # actually in flight. Cache hits contribute no latency of their own, so
+        # a warm rerun cannot inflate or shift the distribution.
+        batches = {ms: n for ms, n in self.observed}
         total_ms = sum(ms for ms, _ in self.observed)
         total_items = sum(n for _, n in self.observed)
         return {
@@ -266,6 +352,9 @@ class ClassifierDev:
             "cache_hits": self.cache_hits,
             "failures": self.failures,
             "classifications": self.classifications,
+            "latency_provenance": "cold network calls only; cache hits contribute no latency",
+            "cold_batches_measured": len(self.observed),
+            "warm_cache_hits_excluded_from_latency": self.warm_hits,
             "batch_latency": latency_summary([ms for ms, _ in self.observed]),
             "ms_per_item_amortised": (total_ms / total_items) if total_items else None,
             "distinct_batches": len(batches),
@@ -292,7 +381,7 @@ def openrouter_key() -> str:
             capture_output=True, text=True, check=True,
         )
         return out.stdout.strip()
-    except (subprocess.CalledProcessError, FileNotFoundError) as exc:
+    except (subprocess.CalledProcessError, FileNotFoundError, OSError) as exc:
         raise RuntimeError(
             "No OpenRouter key: set OPENROUTER_API_KEY or store one in the "
             "login keychain under service 'openrouter'."
@@ -321,6 +410,7 @@ class GLM:
         self.cached_cost = 0.0
         self.cached_prompt_tokens = 0
         self.cached_completion_tokens = 0
+        self.cached_cold_ms: list[float] = []
         self._key = None
 
     def _api_key(self):
@@ -334,6 +424,7 @@ class GLM:
         if system:
             messages.append({"role": "system", "content": system})
         messages.append({"role": "user", "content": redact(prompt) if self.redact_inputs else prompt})
+        assert_no_secrets(messages[-1]["content"], "prompt to OpenRouter")
         body = {
             "model": self.model,
             "messages": messages,
@@ -347,8 +438,10 @@ class GLM:
         cached = self.cache.get(key) if self.use_cache else None
         if cached is not None and not (not cached.get("text") and cached.get("finish_reason") == "length"):
             self.cache_hits += 1
-            self.seen_latencies.append(cached.get("elapsed_ms", 0.0))
-            # keep the originally measured spend visible on a cached rerun
+            # The elapsed_ms stored in the entry is the cold measurement from the
+            # call that produced it. It is a real cold observation, not a warm
+            # replay, so it is reported in a clearly separate bucket.
+            self.cached_cold_ms.append(cached.get("elapsed_ms", 0.0))
             self.cached_cost += float(cached.get("cost_usd") or 0.0)
             self.cached_prompt_tokens += cached.get("prompt_tokens", 0)
             self.cached_completion_tokens += cached.get("completion_tokens", 0)
@@ -370,17 +463,19 @@ class GLM:
                     payload = json.loads(resp.read().decode())
                 break
             except urllib.error.HTTPError as exc:
-                last_error = f"HTTP {exc.code}: {exc.read()[:300]!r}"
+                # Never propagate the provider's response body: it can echo the
+                # Authorization header back on an auth error.
+                last_error = f"HTTP {exc.code}"
                 if exc.code in (429, 502, 503) and attempt < retries - 1:
                     time.sleep(delay); delay *= 2; continue
                 self.failures += 1
-                raise RuntimeError(last_error) from exc
+                raise RuntimeError(last_error) from None
             except (urllib.error.URLError, TimeoutError) as exc:
-                last_error = repr(exc)
+                last_error = f"{type(exc).__name__}"
                 if attempt < retries - 1:
                     time.sleep(delay); delay *= 2; continue
                 self.failures += 1
-                raise RuntimeError(last_error) from exc
+                raise RuntimeError(last_error) from None
         else:
             raise RuntimeError(last_error or "GLM call failed")
         elapsed_ms = (time.perf_counter() - started) * 1000
@@ -437,7 +532,14 @@ class GLM:
                 "completion": self.completion_tokens + self.cached_completion_tokens,
             },
             "cost_usd_including_cache": round(self.reported_cost + self.cached_cost, 6),
-            "latency": latency_summary(self.seen_latencies),
+            "latency_provenance": (
+                "every entry is a cold call measurement: taken in this process for calls that "
+                "went over the wire, or recorded on the original cold call for entries served "
+                "from cache. Warm hits contribute no latency of their own."),
+            "latency": latency_summary(self.latencies + self.cached_cold_ms),
+            "latency_this_run_cold_only": latency_summary(self.latencies),
+            "cold_calls_recorded_from_cache": len(self.cached_cold_ms),
+            "warm_cache_hits_excluded_from_latency": self.cache_hits,
             "latency_cold_only": latency_summary(self.latencies),
         }
 
@@ -466,22 +568,34 @@ def approx_tokens(text: str) -> int:
 
 
 def binary_metrics(y_true, y_pred, positive=1):
-    """Precision/recall/F1 for the `positive` class, plus raw counts."""
+    """Precision/recall/F1 for the `positive` class, plus raw counts.
+
+    A zero precision or recall is a real result (a gate that never fires, or one
+    that always fires wrongly), so F1 is computed whenever both are known, not
+    whenever both are truthy.
+    """
+    if not y_true:
+        return {"n": 0, "tp": 0, "fp": 0, "fn": 0, "tn": 0, "precision": None,
+                "recall": None, "f1": None, "accuracy": None, "false_negative_rate": None}
     tp = sum(1 for t, p in zip(y_true, y_pred) if t == positive and p == positive)
     fp = sum(1 for t, p in zip(y_true, y_pred) if t != positive and p == positive)
     fn = sum(1 for t, p in zip(y_true, y_pred) if t == positive and p != positive)
     tn = sum(1 for t, p in zip(y_true, y_pred) if t != positive and p != positive)
     precision = tp / (tp + fp) if (tp + fp) else None
     recall = tp / (tp + fn) if (tp + fn) else None
-    f1 = (2 * precision * recall / (precision + recall)) if precision and recall else None
-    accuracy = (tp + tn) / len(y_true) if y_true else None
+    if precision is not None and recall is not None and (precision + recall) > 0:
+        f1 = 2 * precision * recall / (precision + recall)
+    elif precision is not None and recall is not None:
+        f1 = 0.0  # both are known and both are zero
+    else:
+        f1 = None
     return {
         "n": len(y_true),
         "tp": tp, "fp": fp, "fn": fn, "tn": tn,
         "precision": precision,
         "recall": recall,
         "f1": f1,
-        "accuracy": accuracy,
+        "accuracy": (tp + tn) / len(y_true),
         "false_negative_rate": (fn / (fn + tp)) if (fn + tp) else None,
     }
 

@@ -29,14 +29,17 @@
       "p50_ms": 14507.20158299373,
       "p95_ms": 17535.102346506028
     },
-    "cache_entries": 8,
-    "cache_hits": 0,
+    "cache_entries": 23,
+    "cache_hits": 7,
     "classifications": 400,
+    "cold_batches_measured": 7,
     "distinct_batches": 7,
     "failures": 0,
+    "latency_provenance": "cold network calls only; cache hits contribute no latency",
     "ms_per_item_amortised": 246.31707874999847,
-    "requests": 7,
-    "tier": "smart"
+    "requests": 0,
+    "tier": "smart",
+    "warm_cache_hits_excluded_from_latency": 7
   },
   "data": {
     "decisions_instrument_excluded": 299,
@@ -61,11 +64,13 @@
     "traces": 116
   },
   "glm": {
-    "cache_hits": 8,
-    "completion_tokens": 15565,
-    "cost_usd_from_snapshot": 0.006733,
-    "cost_usd_from_usage": 0.010456,
-    "failures": 5,
+    "cache_hits": 60,
+    "cold_calls_recorded_from_cache": 60,
+    "completion_tokens": 0,
+    "cost_usd_from_snapshot": 0.0,
+    "cost_usd_from_usage": 0.0,
+    "cost_usd_including_cache": 0.011386,
+    "failures": 0,
     "latency": {
       "max_ms": 23917.591792007443,
       "mean_ms": 6609.884852750595,
@@ -74,15 +79,28 @@
       "p95_ms": 17397.360166061113
     },
     "latency_cold_only": {
-      "max_ms": 23917.591792007443,
-      "mean_ms": 7111.150403058184,
-      "n": 52,
-      "p50_ms": 5727.551604002656,
-      "p95_ms": 18150.89116645758
+      "max_ms": null,
+      "mean_ms": null,
+      "n": 0,
+      "p50_ms": null,
+      "p95_ms": null
+    },
+    "latency_provenance": "every entry is a cold call measurement: taken in this process for calls that went over the wire, or recorded on the original cold call for entries served from cache. Warm hits contribute no latency of their own.",
+    "latency_this_run_cold_only": {
+      "max_ms": null,
+      "mean_ms": null,
+      "n": 0,
+      "p50_ms": null,
+      "p95_ms": null
     },
     "model": "z-ai/glm-5.3-flash",
-    "prompt_tokens": 22928,
-    "requests": 52
+    "prompt_tokens": 0,
+    "requests": 0,
+    "tokens_including_cache": {
+      "completion": 17090,
+      "prompt": 24554
+    },
+    "warm_cache_hits_excluded_from_latency": 60
   },
   "label_distribution": {
     "click": 40,

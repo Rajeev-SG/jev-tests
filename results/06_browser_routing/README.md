@@ -65,7 +65,7 @@ decisions and should not be trusted for rare deterministic actions.
 
 - Measured classifier.dev spend: $0.00 (free tier).
 - Jev: 400 classifications in 7 requests, **246 ms/item amortised**.
-- GLM-5.3-Flash: 52 calls, ≈359 prompt tokens per decision, **$0.0105 measured**.
+- GLM-5.3-Flash: 52 calls, ≈359 prompt tokens per decision, **$0.0114 measured**.
 
 Jev is roughly an order of magnitude faster per decision and free, which is the
 whole basis for using it as a gate rather than the planner.

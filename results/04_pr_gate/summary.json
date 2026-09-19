@@ -11,14 +11,17 @@
       "p50_ms": 12423.357312494772,
       "p95_ms": 23181.166158098495
     },
-    "cache_entries": 12,
-    "cache_hits": 0,
+    "cache_entries": 23,
+    "cache_hits": 4,
     "classifications": 204,
+    "cold_batches_measured": 4,
     "distinct_batches": 4,
     "failures": 0,
+    "latency_provenance": "cold network calls only; cache hits contribute no latency",
     "ms_per_item_amortised": 253.66687969603933,
-    "requests": 4,
-    "tier": "smart"
+    "requests": 0,
+    "tier": "smart",
+    "warm_cache_hits_excluded_from_latency": 4
   },
   "data": {
     "caveat": "Merged is not treated as safe. Positives come only from objective GitHub metadata and file-overlap rework detection, so the positive set is small and recall figures are coarse.",
@@ -63,11 +66,13 @@
     }
   },
   "glm": {
-    "cache_hits": 0,
-    "completion_tokens": 19567,
-    "cost_usd_from_snapshot": 0.006929,
-    "cost_usd_from_usage": 0.01076,
-    "failures": 2,
+    "cache_hits": 60,
+    "cold_calls_recorded_from_cache": 60,
+    "completion_tokens": 0,
+    "cost_usd_from_snapshot": 0.0,
+    "cost_usd_from_usage": 0.0,
+    "cost_usd_including_cache": 0.01076,
+    "failures": 0,
     "latency": {
       "max_ms": 19626.736584003083,
       "mean_ms": 6312.048743716635,
@@ -76,15 +81,28 @@
       "p95_ms": 10869.94254790406
     },
     "latency_cold_only": {
-      "max_ms": 19626.736584003083,
-      "mean_ms": 6312.048743716635,
-      "n": 60,
-      "p50_ms": 5612.660416503786,
-      "p95_ms": 10869.94254790406
+      "max_ms": null,
+      "mean_ms": null,
+      "n": 0,
+      "p50_ms": null,
+      "p95_ms": null
+    },
+    "latency_provenance": "every entry is a cold call measurement: taken in this process for calls that went over the wire, or recorded on the original cold call for entries served from cache. Warm hits contribute no latency of their own.",
+    "latency_this_run_cold_only": {
+      "max_ms": null,
+      "mean_ms": null,
+      "n": 0,
+      "p50_ms": null,
+      "p95_ms": null
     },
     "model": "z-ai/glm-5.3-flash",
-    "prompt_tokens": 11764,
-    "requests": 60
+    "prompt_tokens": 0,
+    "requests": 0,
+    "tokens_including_cache": {
+      "completion": 19567,
+      "prompt": 11764
+    },
+    "warm_cache_hits_excluded_from_latency": 60
   },
   "glm_cost": {
     "illustrative_full_review_cost_usd": 0.0095,
