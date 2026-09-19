@@ -1,0 +1,25 @@
+{
+  "classifier_input_tokens_approx": 42461,
+  "expensive_llm_calls_avoided": 32,
+  "illustrative_direct_jev_cost_usd": 0.001783,
+  "illustrative_glm_cost_usd": {
+    "no_sieve_full_corpus": 0.109801,
+    "saved": 0.004198,
+    "saved_fraction_of_llm_cost": 0.03823178016726401,
+    "with_sieve_kept_records": 0.105603
+  },
+  "llm_calls_avoided_fraction": 0.038231780167264036,
+  "measured_cost_usd": {
+    "classifier_dev": 0.0,
+    "glm_sample": 0.002072
+  },
+  "per_record_llm_assumptions": {
+    "basis": "measured mean of the GLM-5.3-Flash sample in this run",
+    "completion_tokens": 384.6,
+    "prompt_tokens": 175.6
+  },
+  "records": 837,
+  "records_dropped": 32,
+  "records_dropped_fraction": 0.038231780167264036,
+  "records_kept": 805
+}
