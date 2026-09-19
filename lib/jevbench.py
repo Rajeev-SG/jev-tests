@@ -50,6 +50,20 @@ def ensure_dir(path: Path) -> Path:
     return path
 
 
+def ensure_private_dir(path: Path) -> Path:
+    """Like ensure_dir, but 0700.
+
+    `results/.cache/` stores prompt and completion text derived from session
+    samples, so it must not be world-readable on a shared machine.
+    """
+    ensure_dir(path)
+    try:
+        path.chmod(0o700)
+    except OSError:
+        pass
+    return path
+
+
 def pct(values, q):
     """Simple percentile with linear interpolation; [] -> None."""
     values = sorted(v for v in values if v is not None)
@@ -96,14 +110,21 @@ _SCANNER_PATTERNS = [
     ("jwt", re.compile(r"\beyJ[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}")),
     # secret-bearing query parameters and headers, which is how these usually
     # appear in a captured browser or curl log
+    # The look-ahead exempts only a *closed* redaction marker (`[redacted]`,
+    # `[redacted-credential]`, ...). A value that merely begins with the literal
+    # "[redacted" and continues with extra, non-bracket text is still scanned, so
+    # a novel secret cannot hide behind the marker prefix.
     ("oauth-query-param", re.compile(
         r"(?i)[?&](access_token|refresh_token|id_token|client_secret|api_key|apikey|auth)="
-        r"(?!\[redacted)[^\s&\"']{8,}")),
-    ("bearer-header", re.compile(r"(?i)\bbearer\s+(?!\[redacted)[A-Za-z0-9._\-]{16,}")),
-    ("cookie-header", re.compile(r"(?i)\b(set-)?cookie:\s*[^\n]{0,80}?(session|token|auth)[^\s=;]{0,20}=(?!\[redacted)[^;\s]+")),
+        r"(?!\[redacted[^\]]*\](?![^\s&\"']))[^\s&\"']{8,}")),
+    ("bearer-header", re.compile(
+        r"(?i)\bbearer\s+(?!\[redacted[^\]]*\](?![\w.\-]))[A-Za-z0-9._\-]{16,}")),
+    ("cookie-header", re.compile(
+        r"(?i)\b(set-)?cookie:\s*[^\n]{0,80}?(session|token|auth)[^\s=;]{0,20}="
+        r"(?!\[redacted[^\]]*\](?![^;\s]))[^;\s]+")),
     ("key-value-secret", re.compile(
         r"(?i)\b(authorization|api[_-]?key|password|passwd|secret|client_secret|access_token|refresh_token)\b"
-        r"\s*[:=]\s*[\"']?(?!\[redacted)[^\s\"',{]{8,}")),
+        r"\s*[:=]\s*[\"']?(?!\[redacted[^\]]*\](?![^\s\"',{]))[^\s\"',{]{8,}")),
 ]
 
 
@@ -177,7 +198,7 @@ class Cache:
     """Content-addressed JSON cache. Calls are only made on a cache miss."""
 
     def __init__(self, namespace: str):
-        self.dir = ensure_dir(CACHE_DIR / namespace)
+        self.dir = ensure_private_dir(CACHE_DIR / namespace)
 
     def key(self, payload) -> str:
         blob = json.dumps(payload, sort_keys=True, ensure_ascii=False)
@@ -232,6 +253,10 @@ class ClassifierDev:
         self.recorded_cold_ms: list[float] = []
         self.observed: list[tuple[float, int]] = []
         self.historical_observed: list[tuple[float, int]] = []
+        # A batch that 502s is retried as two halves. The parent attempt did real
+        # wall-clock work, so its measured time is kept here rather than dropped,
+        # or the amortised figure would under-report user-visible latency.
+        self.split_parent_ms: list[float] = []
         self.warm_hits = 0
         self.classifications = 0
 
@@ -324,6 +349,11 @@ class ClassifierDev:
                 if exc.code == 502 and len(chunk) > 20:
                     mid = len(chunk) // 2
                     print(f"classifier.dev 502 on {len(chunk)} inputs; splitting", file=sys.stderr)
+                    # `_post` counted the failed attempts; record the parent
+                    # batch's measured time so split retries do not silently
+                    # vanish from the latency accounting.
+                    if self.cold_latencies:
+                        self.split_parent_ms.append(self.cold_latencies[-1])
                     return (self._classify_chunk(chunk[:mid], labels, instructions, multi, max_labels)
                             + self._classify_chunk(chunk[mid:], labels, instructions, multi, max_labels))
                 raise
@@ -375,6 +405,8 @@ class ClassifierDev:
             "distinct_batches": len(batches),
             "distinct_batches_historical": len(hist_batches),
             "cache_entries": self.cache.hits(),
+            "split_parent_batches": len(self.split_parent_ms),
+            "split_parent_ms_total": round(sum(self.split_parent_ms), 3) if self.split_parent_ms else 0.0,
         }
 
     def cost_usd(self, smart_escalated=0):

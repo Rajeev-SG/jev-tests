@@ -6,7 +6,9 @@ __pycache__/
 
 # Session-derived material stays local: it contains real work paths, client
 # names and tool output. The extractor scripts are committed; the samples are
-# not. Aggregate results (summary.json, CSVs) are committed.
+# not. Aggregate results (summary.json, CSVs) are committed, but they must be
+# numeric/opaque: scripts/privacy_guard.py runs in CI and refuses any committed
+# artefact that still carries a raw /Users/<user>/... path.
 data/sessions/*.jsonl
 data/context/*.jsonl
 data/prs/*.jsonl

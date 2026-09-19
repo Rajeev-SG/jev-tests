@@ -235,3 +235,64 @@ class TestBrowserPatchRestore(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestRunnerArgParsing(unittest.TestCase):
+    """F5 guard: the matrix runner must parse args and dispatch correctly."""
+
+    def _run(self, argv):
+        import subprocess
+        return subprocess.run(
+            [".venv/bin/python", "scripts/run_browser_matrix.py", *argv],
+            capture_output=True, text=True, cwd=str(REPO),
+        )
+
+    def test_help_lists_task_and_backend_flags(self):
+        r = self._run(["--help"])
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("--task", r.stdout)
+        self.assertIn("--backend", r.stdout)
+
+    def test_runner_imports_and_exposes_run_one(self):
+        # A smoke test: the runner must import and its per-row entrypoint must
+        # exist, so CI notices an import/API break even without a live browser.
+        import importlib.util
+        spec = importlib.util.spec_from_file_location(
+            "run_browser_matrix", REPO / "scripts" / "run_browser_matrix.py"
+        )
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        self.assertTrue(callable(mod.main))
+        self.assertTrue(callable(mod.run_one))
+
+
+class TestBridgeDispatch(unittest.TestCase):
+    """F5 guard: bridge dispatch must route each Jev action to the transport."""
+
+    def test_each_action_kind_dispatches(self):
+        b = make_browser({})
+        b.fresh = lambda page, action=None: True
+        b.evaluate = lambda expr: True  # stamp + select confirmations
+        page = {"marker": "m"}
+        b.act({"id": "w", "kind": "wait", "node": None}, page)
+        b.act({"id": "s", "kind": "scroll", "node": None, "delta": 100}, page)
+        b.act({"id": "e1", "kind": "click", "node": 1}, page)
+        b.act({"id": "e2", "kind": "fill", "node": 2}, page, text="hi")
+        kinds = [c[0] for c in b.transport.calls]
+        self.assertIn("scroll", kinds)
+        self.assertIn("click", kinds)
+        self.assertIn("fill", kinds)
+
+    def test_unknown_action_kind_raises(self):
+        b = make_browser({})
+        b.fresh = lambda page, action=None: True
+        b.evaluate = lambda expr: True
+        with self.assertRaises(ValueError):
+            b.act({"id": "e9", "kind": "teleport", "node": 1}, {"marker": "m"})
+
+    def test_fill_without_text_raises(self):
+        b = make_browser({})
+        b.fresh = lambda page, action=None: True
+        b.evaluate = lambda expr: True
+        with self.assertRaises(ValueError):
+            b.act({"id": "e2", "kind": "fill", "node": 2}, {"marker": "m"}, text=None)
