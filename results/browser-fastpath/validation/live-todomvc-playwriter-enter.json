@@ -1,0 +1,51 @@
+{
+  "task": "todomvc",
+  "backend": "playwriter",
+  "fill_enter_compat": true,
+  "pass": false,
+  "wall_s": 4.037,
+  "jev_decisions": 3,
+  "actions": 2,
+  "text_calls": 2,
+  "status": "blocked",
+  "error": null,
+  "verification": {
+    "url": "https://demo.playwright.dev/todomvc/#/",
+    "items": [
+      {
+        "text": "Email supplier",
+        "completed": false
+      },
+      {
+        "text": "Review invoice",
+        "completed": false
+      }
+    ],
+    "saved": [
+      {
+        "title": "Email supplier",
+        "completed": false
+      },
+      {
+        "title": "Review invoice",
+        "completed": false
+      }
+    ]
+  },
+  "history": [
+    {
+      "step": 1,
+      "kind": "fill",
+      "choice": "e2",
+      "text": "Email supplier",
+      "page_changed": true
+    },
+    {
+      "step": 2,
+      "kind": "fill",
+      "choice": "e2",
+      "text": "Review invoice",
+      "page_changed": true
+    }
+  ]
+}

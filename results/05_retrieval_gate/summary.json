@@ -60,12 +60,12 @@
     "retrieval": "local project-recall Recoll index via recollq",
     "sessions": 0,
     "top_dirs": [
-      "/Users/rajeev/Work/PHD/CHANEL/grasp",
-      "/Users/rajeev/Work/PHD/CHANEL/outputs/grasp_live_implementation_20260904",
-      "/Users/rajeev/Work/PHD/CHANEL/outputs/sitemap-v2/sharepoint-live-audit-20260904",
-      "/Users/rajeev/Work/Singulyr/singulyr.com/src/prototypes/tradehero",
-      "/Users/rajeev/Work/TradeHero/NewGen_Proposal",
-      "/Users/rajeev/tradehero-mobile-web-parity-audit"
+      "[path]",
+      "[path]",
+      "[path]",
+      "[path]",
+      "[path]",
+      "[path]"
     ]
   },
   "diagnosis": {

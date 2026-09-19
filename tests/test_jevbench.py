@@ -207,3 +207,93 @@ class ProvenanceTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+class RedactionScanCompatibilityTest(unittest.TestCase):
+    """F2 guard: the redactor's output must never re-trip the scanner."""
+
+    SAMPLES = [
+        "?access_token=abcdefgh12345678",
+        "authorization: abcdefgh12345678",
+        "Bearer abcdefghijklmnopqrstuvwx",
+        "Cookie: sessionid=abcdef1234567890; Path=/",
+        "set-cookie: auth_token=abcdef1234567890; HttpOnly",
+        "OPENROUTER_API_KEY=sk-or-v1-abcdefghijklmnopqrst",
+        "token: ghp_abcdefghijklmnopqrstuvwx01",
+        "aws AKIAIOSFODNN7EXAMPLE",
+        "refresh 1//0abcdefghijklmnopqrstuvwx",
+    ]
+
+    def test_every_redaction_is_scanner_clean(self):
+        for text in self.SAMPLES:
+            with self.subTest(text=text):
+                self.assertEqual(jb.scan_for_secrets(jb.redact(text)), [],
+                                 f"redaction left the gate closed: {jb.redact(text)}")
+
+    def test_open_ended_redacted_prefix_does_not_bypass(self):
+        # A value that begins with the literal "[redacted" but continues with
+        # real secret text must still be detected.
+        for text in [
+            "?access_token=[redacted]-evilsecretvalue",
+            "authorization: [redacted]-evilsecretvalue",
+        ]:
+            with self.subTest(text=text):
+                self.assertTrue(jb.scan_for_secrets(text), f"bypassed: {text}")
+
+    def test_closed_markers_are_still_exempt(self):
+        for text in [
+            "?access_token=[redacted]",
+            "authorization: [redacted-credential]",
+            "Authorization: Bearer [redacted]",
+            "Cookie: sessionid=[redacted]; Path=/",
+        ]:
+            with self.subTest(text=text):
+                self.assertEqual(jb.scan_for_secrets(text), [], f"false positive: {text}")
+
+
+class SplitAccountingTest(unittest.TestCase):
+    """F3 guard: a split retry must not silently drop the parent's latency."""
+
+    def test_split_parent_is_recorded(self):
+        # Drive _classify_chunk to a 502 once on the parent batch, then let the
+        # halves succeed, and assert the parent time is retained.
+        import urllib.error
+
+        calls = {"n": 0}
+
+        class FakeClient(jb.ClassifierDev):
+            def __init__(self):
+                super().__init__(tier="fast", use_cache=False)
+                self.classifications = 0
+
+            def _post(self, body):
+                calls["n"] += 1
+                if len(body["inputs"]) > 20 and calls["n"] == 1:
+                    self.cold_latencies.append(123.0)  # parent did real work
+                    raise urllib.error.HTTPError("u", 502, "bad gateway", {}, None)
+                n = len(body["inputs"])
+                return {"payload": {"results": [{"label": "x"} for _ in range(n)]},
+                        "cold_ms": 10.0}
+
+        c = FakeClient()
+        c._classify_chunk([f"t{i}" for i in range(40)], ["x"], None, False, None)
+        self.assertEqual(c.split_parent_ms, [123.0])
+
+    def test_split_fields_are_exposed_in_stats(self):
+        c = jb.ClassifierDev(tier="fast", use_cache=False)
+        c.split_parent_ms = [50.0, 25.0]
+        st = c.stats()
+        self.assertEqual(st["split_parent_batches"], 2)
+        self.assertEqual(st["split_parent_ms_total"], 75.0)
+
+
+class CachePermissionsTest(unittest.TestCase):
+    """F4 guard: the prompt/completion cache must not be world-readable."""
+
+    def test_cache_dir_is_private(self):
+        import tempfile
+        from pathlib import Path as _P
+        with tempfile.TemporaryDirectory() as d:
+            target = _P(d) / "cachedir"
+            jb.ensure_private_dir(target)
+            mode = target.stat().st_mode & 0o777
+            self.assertEqual(mode, 0o700, f"cache dir mode is {oct(mode)}")

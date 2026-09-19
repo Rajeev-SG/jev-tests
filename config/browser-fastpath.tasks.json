@@ -1,0 +1,35 @@
+{
+  "screen_reps": ["1", "2"],
+  "tasks": [
+    {
+      "id": "todomvc",
+      "purpose": "controlled latency microbenchmark",
+      "run_fill_enter_compat": true
+    },
+    {
+      "id": "chanel-gb-pdp-tag-inspection",
+      "purpose": "real-work marketing-tag inspection",
+      "run_fill_enter_compat": false
+    },
+    {
+      "id": "porsche-uk-tag-inspection",
+      "purpose": "real-work marketing-tag inspection",
+      "run_fill_enter_compat": false
+    },
+    {
+      "id": "rajeevg-crawlability-audit",
+      "purpose": "real-work technical inspection",
+      "run_fill_enter_compat": false
+    },
+    {
+      "id": "rajeevg-seo-metadata-audit",
+      "purpose": "real-work SEO metadata inspection",
+      "run_fill_enter_compat": false
+    }
+  ],
+  "jev_backends": [
+    "browser-harness",
+    "browser-relay",
+    "playwriter"
+  ]
+}

@@ -73,3 +73,47 @@ The repo root should ultimately contain a one-page `RESULTS.md` answering:
 > **Where should Rajeev use Jev today, what should stay on an LLM, and what are the measured savings?**
 
 No marketing language. If a test fails, say so.
+
+
+## Test 6 architecture: Jev fast path over Playwriter / Browser Relay
+
+The browser experiment uses the existing `web-automation-microbench` task/verifier contract rather than inventing a second benchmark.
+
+```text
+coding / reasoning agent
+        |
+        | high-level browser goal
+        v
+   Jev Ultrafast policy
+        |
+        | indexed operation + observed node
+        v
+ transport adapter
+   |             |
+Playwriter   Browser Relay
+   |             |
+   +------> existing Chrome
+```
+
+The reasoning model owns the goal. Jev owns repetitive next-action selection. A small text helper is used only when text must be generated.
+
+The model never invents CSS selectors, coordinates, JavaScript or shell commands. Jev chooses from observed indexed DOM nodes; the bridge validates the selected node and creates any transport selector internally.
+
+Upstream Jev Ultrafast is pinned to `browser-use/jev-ultrafast@452c1ad2dd628008f1d5608f28158d76e49e6cc0`, the functional 7-second-demo commit.
+
+### Conditions
+
+Compare the same task/verifier under:
+
+1. current GLM-5.3-Flash + Browser Relay baseline;
+2. current GLM-5.3-Flash + Playwriter baseline;
+3. stock Jev Ultrafast + Browser Harness control;
+4. Jev Ultrafast + Browser Relay;
+5. Jev Ultrafast + Playwriter;
+6. where required, a separately-labelled Jev + Enter compatibility condition.
+
+Stock Jev currently has no arbitrary keypress operation, while the existing TodoMVC benchmark requires Enter to commit each todo. A stock failure is evidence and must not be hidden by the compatibility row.
+
+Use TodoMVC for latency plus 3-5 replayable tasks from the harvested microbench corpus. Measure independent pass/fail, wall time, Jev p50/p95 decision latency, action/decision/text-helper counts, browser calls, stale retries, cost and planner turns eliminated.
+
+Implementation contract: [docs/browser-fastpath.md](docs/browser-fastpath.md).

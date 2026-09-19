@@ -1,0 +1,22 @@
+[project]
+name = "jev-tests"
+version = "0.1.0"
+description = "Empirical Jev fast-path experiments on Rajeev's workloads"
+requires-python = ">=3.12"
+dependencies = [
+  "jev-ultrafast @ git+https://github.com/browser-use/jev-ultrafast.git@452c1ad2dd628008f1d5608f28158d76e49e6cc0",
+]
+
+[project.scripts]
+jev-fastpath = "jev_tests.run:main"
+jev-microbench = "jev_tests.microbench:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/jev_tests"]
