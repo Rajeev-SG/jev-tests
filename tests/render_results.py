@@ -65,7 +65,6 @@ def rows():
     t2 = load("02_tool_routing")
     t3 = load("03_context_pruning")
     t4 = load("04_pr_gate")
-    t5 = load("05_retrieval_gate")
     t6 = load("06_browser_routing")
     cost1 = json.load((jb.ROOT / "results" / "01_corpus_sieve" / "cost.json").open())
     cost2 = json.load((jb.ROOT / "results" / "02_tool_routing" / "cost.json").open())
@@ -129,11 +128,6 @@ def rows():
         f"Jev $0.00 measured; GLM {llm_spend(t4.get('glm'))}; illustrative full review of all "
         f"{t4['data']['prs']} PRs ${f(t4['glm_cost']['illustrative_full_review_cost_usd'], 4)} | "
         f"{f(100 * g4['reviews_avoided_fraction'], 1)}%, at a {f(g4['false_skips_share'], 2)} false-skip rate |",
-        f"| 5 | retrieval -> relevance gate | keep chunk or not | **NOT PROVEN — BLOCKED** | "
-        f"{t5['coverage_diagnostics']['pools_with_ground_truth']} of "
-        f"{t5['coverage_diagnostics']['tasks_matched']} retrieval pools contained any file the session used; "
-        f"pool sizes {t5['coverage_diagnostics']['pool_sizes']} | n/a | n/a | $0.00, no calls needed "
-        f"to establish the blocker | unmeasurable |",
         f"| 6 | browser next-action | inspect / click / type / ... | **USE AS GATE** | "
         f"raw {f(m6['classifier_dev_smart']['top1_accuracy'])} vs majority "
         f"{f(m6['majority_baseline']['top1_accuracy'])} and GLM {f(m6['glm_5_3_flash_sample']['top1_accuracy'])}; "
@@ -147,6 +141,13 @@ def rows():
     ])
 
 
+UNTESTED_NOTE = (
+    "Test 5 (retrieval relevance gate, issue #6) is deliberately absent from this table: it is "
+    "**untested**. The retrieval corpus and the sessions do not overlap (only 1 of 26 relevant "
+    "sessions touched a file inside the indexed folders), so no claim is made about it in either "
+    "direction. See results/05_retrieval_gate/README.md.")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true")
@@ -154,6 +155,8 @@ def main() -> int:
     table = rows()
     if not args.check:
         print(table)
+        print()
+        print(UNTESTED_NOTE)
         return 0
     text = RESULTS.read_text()
     start, end = text.find(BEGIN), text.find(END)
@@ -161,7 +164,7 @@ def main() -> int:
         print("RESULTS.md has no generated-table markers", file=sys.stderr)
         return 2
     current = text[start + len(BEGIN):end].strip()
-    if current != table.strip():
+    if current != (table.strip() + "\n\n" + UNTESTED_NOTE).strip():
         print("RESULTS.md table is stale; regenerate with: python3 tests/render_results.py",
               file=sys.stderr)
         return 3

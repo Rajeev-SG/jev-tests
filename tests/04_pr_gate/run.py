@@ -228,7 +228,9 @@ def main() -> int:
             False,
             "inputs are PR metadata from private repositories (openreview, "
             "ad-platform-intelligence, codex-home, project-recall)",
-            "python3 tests/04_pr_gate/collect.py --per-repo 30 (needs gh auth)"),
+            "python3 tests/04_pr_gate/collect.py --per-repo 30 (needs gh auth)"
+            "decision: inputs stay local because four of the five repositories are private; "
+            "collect.py is committed and re-runs against any repository the operator can read",),
 
     }
     if glm_rows:

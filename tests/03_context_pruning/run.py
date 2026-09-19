@@ -241,7 +241,9 @@ def main() -> int:
             False,
             "inputs are chunks of long local codex sessions, which contain real work paths "
             "and client names",
-            "python3 tests/03_context_pruning/extract.py (reads the local AgentSessions index)"),
+            "python3 tests/03_context_pruning/extract.py (reads the local AgentSessions index)"
+            "decision: inputs stay local because they contain real work paths and client names; "
+            "the extractor is committed so the method can be repeated on other sessions",),
 
     }
     jb.write_json(OUT / "summary.json", summary)

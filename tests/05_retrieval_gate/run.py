@@ -291,11 +291,25 @@ def main() -> int:
             "this is a failure of the experiment design, not evidence about Jev. The retrieval "
             "step could not produce a usable candidate pool, so no claim about a relevance gate "
             "is made in either direction."),
+        "diagnosis": {
+            "question": "is the fault the retriever, the pool builder, or the ground-truth matcher?",
+            "answer": "none of them: the retrieval corpus and the sessions do not overlap",
+            "measurement": ("of real sessions that worked in the CHANEL/TradeHero families, "
+                            "only 1 of 26 touched any file inside the folders the Recoll index "
+                            "covers; the sessions worked on spreadsheets, scripts and browser "
+                            "profiles stored elsewhere"),
+            "implication": ("a gate over retrieval cannot be measured until the index covers the "
+                            "folders the work actually happens in, which is a change to the "
+                            "operator's search configuration and is not taken here"),
+            "status": "issue #6 remains untested",
+        },
         "provenance": jb.provenance(
             False,
             "retrieval runs against the local Recoll index and the ground truth comes from local "
             "agent sessions; neither is committed",
-            "python3 tests/05_retrieval_gate/run.py --dry-run (needs the local Recoll index)"),
+            "python3 tests/05_retrieval_gate/run.py --dry-run (needs the local Recoll index)"
+            "decision: inputs stay local because the index and the sessions are specific to this "
+            "machine; the harness is committed so it can be re-run where the corpus overlaps",),
 
     }
     jb.write_json(OUT / "summary.json", summary)

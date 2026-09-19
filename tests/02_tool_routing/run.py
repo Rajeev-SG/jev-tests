@@ -358,7 +358,10 @@ def main() -> int:
             False,
             "inputs are next-action decisions parsed from local agent sessions in the "
             "AgentSessions index; they contain real work paths and client names",
-            "python3 tests/02_tool_routing/extract.py (reads the local AgentSessions index)"),
+            "python3 tests/02_tool_routing/extract.py (reads the local AgentSessions index)"
+            "decision: inputs stay local because they contain real work paths and client names; "
+            "the extractor and the method are committed so a third party can repeat it on their "
+            "own sessions, and the numbers here are not independently checkable",),
         "classifier_dev_fast": fast_client.stats(),
         "classifier_dev_fast_smart_escalation": {
             "unsure_count": len(unsure),

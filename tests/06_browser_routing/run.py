@@ -158,7 +158,9 @@ def main() -> int:
             "inputs are next-action decisions parsed from Rajeev-SG/web-automation-microbench "
             "trace artifacts, which is a private repository; the decision states contain page "
             "text from client sites, so they are not committed",
-            "python3 tests/06_browser_routing/extract.py (needs a local clone of the microbench repo)"),
+            "python3 tests/06_browser_routing/extract.py (needs a local clone of the microbench repo)"
+            "decision: inputs stay local because the traces hold client-site page text; the "
+            "extractor is committed so the method can be repeated on any local trace archive",),
         "calibration": jb.calibration_table([c for c, _ in confident], [ok for _, ok in confident]),
         "per_label_recall": {
             label: {

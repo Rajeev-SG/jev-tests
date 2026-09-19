@@ -42,8 +42,9 @@ benchmarks on their own sessions should treat the residual risk as real.
 | 2 | coding-agent tool routing | which tool family next | **PRIOR ONLY** | top-1 0.61 / top-2 0.87 vs majority 0.42 / repeat-last 0.55 / GLM 0.42 over 1265 decisions (time-ordered subset, not a random sample: largest composition drift source:codex -47.4 points) | n/a | p50 5259 / p95 14372 ms (recorded run) | Jev $0.0229 direct-API equivalent; GLM $0.0187; $0.134 per 1k decisions illustrative | none at 98% accuracy; gate picked on a tuning half gives held-out 12.9% coverage at 0.87 (in-sample 12.8% at 0.90) |
 | 3 | context pruning | KEEP / TRUNCATE / DROP per history unit | **NOT PROVEN** | 0.0% of context removed at a 0.7 gate; 309 kept / 0 truncated / 0 dropped over 309 chunks in 5 sessions | 585.5 ms/decision (recorded run) | p50 8188 / p95 31282 ms (recorded run) | Jev $0.00 measured; GLM $0.0384 recorded | 0% |
 | 4 | PR review gate | skip the reviewer? | **NOT PROVEN for skipping** | 28.4% of reviews avoided, recall 0.65, 72% of skips wrong; rules avoid 12.7% at 0.85 recall over 102 PRs | 253.7 ms/decision (recorded run) | p50 5613 / p95 10870 ms (recorded run) | Jev $0.00 measured; GLM $0.0108; illustrative full review of all 102 PRs $0.0095 | 28.4%, at a 0.72 false-skip rate |
-| 5 | retrieval -> relevance gate | keep chunk or not | **NOT PROVEN — BLOCKED** | 0 of 27 retrieval pools contained any file the session used; pool sizes [1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2] | n/a | n/a | $0.00, no calls needed to establish the blocker | unmeasurable |
 | 6 | browser next-action | inspect / click / type / ... | **USE AS GATE** | raw 0.68 vs majority 0.86 and GLM 0.69; threshold 0.7 picked on a tuning half: held-out 63.3% coverage at 0.969 accuracy (ci95 0.92-0.99); in-sample was 63.2% at 0.972, over 400 scored decisions | 246.3 ms/decision (recorded run) | p50 4850 / p95 17397 ms (recorded run) | Jev $0.00; GLM $0.0114 | 63.2% of planner turns on the confident subset |
+
+Test 5 (retrieval relevance gate, issue #6) is deliberately absent from this table: it is **untested**. The retrieval corpus and the sessions do not overlap (only 1 of 26 relevant sessions touched a file inside the indexed folders), so no claim is made about it in either direction. See results/05_retrieval_gate/README.md.
 
 <!-- END GENERATED TABLE -->
 
@@ -105,11 +106,12 @@ the issue set is not met anywhere on the curve.
    is almost nothing to save and a defect to miss.
 3. **To prune coding-agent context.** At a safe gate it prunes nothing; its drop
    judgements are its least confident ones.
-4. **Between retrieval and the coding model** — no claim either way. Test 5 was
-   a **harness failure**: the retrieval step could not build a usable candidate
-   pool (0 of 27 pools contained a file the session had used), so nothing was
-   measured about Jev. That is an experiment to fix, not evidence against the
-   gate.
+4. **Between retrieval and the coding model** — untested, so no claim either
+   way. Test 5 could not be built and is absent from the table above: the
+   retrieval corpus and the sessions do not overlap (of 26 real sessions in the
+   CHANEL/TradeHero families, only 1 touched a file inside the folders the
+   Recoll index covers). **Issue #6 remains open and untested.** The diagnosis
+   is recorded in `results/05_retrieval_gate/summary.json` and the README.
 
 ## How thresholds are validated
 
@@ -224,7 +226,11 @@ re-derive its numbers:
 | 5 retrieval gate | no | local Recoll index + local session ground truth |
 | 6 browser routing | no | parsed from the private `web-automation-microbench` traces |
 
-For the five that are not committed, the extractor is committed and the summary
-says so; the numbers are not independently checkable by a third party, only the
-method is. The OpenRouter key is read from `OPENROUTER_API_KEY` (portable) with a
-macOS keychain fallback; classifier.dev needs no key at all.
+For the five that are not committed, this is a deliberate per-test decision, not a
+blanket flag: each `provenance` block states the reason (real work paths, client
+page text, private repositories) and the `regenerate_with` command, so the method
+is repeatable on any machine that has the same sources, while the raw traces stay
+where they belong. The consequence is stated plainly: **for those five tests a
+third party can audit the method, not the numbers.** The OpenRouter key is read
+from `OPENROUTER_API_KEY` (portable) with a macOS keychain fallback;
+classifier.dev needs no key at all.

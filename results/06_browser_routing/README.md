@@ -32,9 +32,20 @@ Neither model beats the base rate. That is the honest headline: on this corpus
 the next action is nearly always "read the page" (346 of 400 sampled decisions
 are inspect), so a classifier adds nothing on the full set.
 
-The picture changes with confidence gating:
+**Out-of-sample — this is the number to quote.** The threshold is chosen on a
+tuning half and applied to the disjoint held-out half. At a ≥95% target the
+tuning half picked **0.7**:
 
-**In-sample** (threshold swept on the same data used to report accuracy — optimistic):
+| split | n | coverage | accuracy | 95% CI |
+|---|---|---|---|---|
+| tuning (in-sample) | 122 | 63.2% | 0.975 | 0.930–0.992 |
+| **held-out** | **131** | **63.3%** | **0.969** | **0.924–0.988** |
+
+The operating point survives held-out validation, so it is not an artefact of
+picking the threshold after looking at the data.
+
+**In-sample and exploratory only** — the raw threshold sweep on the same 400
+decision sample:
 
 | confidence threshold | coverage | accuracy on auto-routed |
 |---|---|---|
@@ -43,18 +54,6 @@ The picture changes with confidence gating:
 | >=0.70 | 63.2% | 0.972 |
 | >=0.80 | 46.5% | 0.995 |
 | >=0.90 | 17.5% | 1.000 |
-
-**Out-of-sample** (threshold chosen on a tuning half, scored on the disjoint
-held-out half — this is the number to quote): at a >=95% target the tuning half
-picked **0.7**, giving
-
-| split | n | coverage | accuracy | 95% CI |
-|---|---|---|---|---|
-| tuning | 122 | 63.2% | 0.975 | 0.930-0.992 |
-| held-out | 131 | 63.3% | 0.969 | 0.924-0.988 |
-
-The operating point survives held-out validation: 63.3% coverage at 96.9%, not
-an artefact of threshold selection.
 
 ## Tier note
 
