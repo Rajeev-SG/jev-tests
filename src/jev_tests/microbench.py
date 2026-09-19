@@ -16,6 +16,8 @@ import jev_ultrafast.agent as jev_agent
 
 from .bridge import BridgeBrowser
 
+UPSTREAM_BROWSER = jev_agent.Browser
+
 
 def _load_benchlib(root: Path):
     bench_ext = root / "bench-ext"
@@ -69,7 +71,23 @@ def run_one(root: Path, task_id: str, rep: str, backend: str, fill_enter: bool) 
     else:
         os.environ.pop("JEV_RESET_JS", None)
 
-    jev_agent.Browser = BridgeBrowser
+    if backend == "browser-harness":
+        class BenchmarkUpstreamBrowser(UPSTREAM_BROWSER):
+            def __init__(self, url: str):
+                super().__init__(url)
+                reset_js = os.environ.get("JEV_RESET_JS")
+                if reset_js:
+                    self.evaluate(reset_js)
+                    self.call("Page.navigate", url=url)
+                    deadline = time.monotonic() + 15
+                    while time.monotonic() < deadline:
+                        if self.evaluate("document.readyState") == "complete":
+                            break
+                        time.sleep(0.05)
+
+        jev_agent.Browser = BenchmarkUpstreamBrowser
+    else:
+        jev_agent.Browser = BridgeBrowser
     started = time.perf_counter()
     verify_raw = None
     verify_parsed = None
@@ -145,7 +163,11 @@ def main() -> None:
     p.add_argument("--microbench-root", default="../web-automation-microbench")
     p.add_argument("--task", default="todomvc")
     p.add_argument("--rep", default="1")
-    p.add_argument("--backend", required=True, choices=["browser-relay", "playwriter"])
+    p.add_argument(
+        "--backend",
+        required=True,
+        choices=["browser-harness", "browser-relay", "playwriter"],
+    )
     p.add_argument("--fill-enter", action="store_true")
     args = p.parse_args()
 
