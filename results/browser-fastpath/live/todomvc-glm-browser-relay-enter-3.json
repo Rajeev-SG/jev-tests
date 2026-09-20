@@ -22,5 +22,7 @@
   "decision_p50_ms": null,
   "decision_p95_ms": null,
   "history": [],
-  "decisions": []
+  "decisions": [],
+  "_bucket": "policy_format_error",
+  "_bucket_basis": "policy_format_error"
 }

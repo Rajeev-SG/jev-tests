@@ -54,5 +54,7 @@
       "text": "Email supplier",
       "page_changed": true
     }
-  ]
+  ],
+  "_bucket": "no_goal_state",
+  "_bucket_basis": "policy_outcome"
 }

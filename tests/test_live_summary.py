@@ -225,3 +225,22 @@ class ProvenanceTest(unittest.TestCase):
         for f in sorted(shim.glob("*.json")):
             digest = hashlib.sha256(f.read_bytes()).hexdigest()[:16]
             self.assertIn(digest, prov, f"{f.name} digest missing from PROVENANCE.md")
+
+
+class StampedBucketTest(unittest.TestCase):
+    """D3: each artifact carries its own bucket, and the summary must agree."""
+
+    def test_live_artifacts_carry_a_bucket(self):
+        import json
+        import glob
+        files = sorted(glob.glob(str(REPO / "results/browser-fastpath/live/*.json")))
+        self.assertGreater(len(files), 0)
+        for f in files:
+            d = json.load(open(f))
+            self.assertIn("_bucket", d, f"{f} has no stamped bucket")
+
+    def test_the_crashed_glm_relay_run_is_policy_format_error(self):
+        import json
+        d = json.load(open(REPO / "results/browser-fastpath/live/todomvc-glm-browser-relay-enter-3.json"))
+        self.assertEqual(d["_bucket"], "policy_format_error")
+        self.assertEqual(d["_bucket_basis"], "policy_format_error")

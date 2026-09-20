@@ -293,5 +293,7 @@
       "text": null,
       "page_changed": false
     }
-  ]
+  ],
+  "_bucket": "no_goal_state",
+  "_bucket_basis": "policy_outcome"
 }

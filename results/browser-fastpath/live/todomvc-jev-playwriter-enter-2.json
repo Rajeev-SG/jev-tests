@@ -86,5 +86,7 @@
       "text": null,
       "page_changed": true
     }
-  ]
+  ],
+  "_bucket": "pass",
+  "_bucket_basis": "policy_outcome"
 }
