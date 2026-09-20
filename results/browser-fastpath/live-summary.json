@@ -22,6 +22,7 @@
       "median_decision_p50_ms": 2356,
       "median_actions": 3,
       "decision_model": "z-ai/glm-5.3-flash",
+      "termination_failures": {},
       "files": [
         "todomvc-glm-browser-relay-enter-1.json",
         "todomvc-glm-browser-relay-enter-2.json",
@@ -41,6 +42,9 @@
       "median_decision_p50_ms": 1891,
       "median_actions": 4,
       "decision_model": "z-ai/glm-5.3-flash",
+      "termination_failures": {
+        "step_budget": 1
+      },
       "files": [
         "todomvc-glm-playwriter-enter-1.json",
         "todomvc-glm-playwriter-enter-2.json",
@@ -53,7 +57,7 @@
       "runs": 3,
       "buckets": {
         "no_goal_state": 2,
-        "transport_error": 1
+        "policy_format_error": 1
       },
       "goal_state_reached": 0,
       "clean_termination": 0,
@@ -62,6 +66,10 @@
       "median_decision_p50_ms": 1085,
       "median_actions": 5.0,
       "decision_model": "classifier.dev/jev-1.13.0",
+      "termination_failures": {
+        "repeated_action": 2,
+        "policy_format_error": 1
+      },
       "files": [
         "todomvc-jev-browser-relay-enter-1.json",
         "todomvc-jev-browser-relay-enter-2.json",
@@ -81,6 +89,10 @@
       "median_decision_p50_ms": 1220,
       "median_actions": 8,
       "decision_model": "classifier.dev/jev-1.13.0",
+      "termination_failures": {
+        "repeated_action": 3,
+        "transport_error": 2
+      },
       "files": [
         "todomvc-jev-playwriter-enter-1.json",
         "todomvc-jev-playwriter-enter-2.json",

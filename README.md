@@ -4,57 +4,56 @@ Cheap, empirical tests of Jev / classifier.dev against Rajeev's real workloads.
 
 ## Plain-English answer: does Jev improve browser automation?
 
-**Not proven. Jev was faster at deciding and reached the goal state as often as
-GLM, but it never once stopped on its own — so it never actually finished a task.
-At this sample size the pass-rate difference is not statistically meaningful.**
+**Not proven. Jev decides about twice as fast and reaches the goal state as often
+as GLM on Playwriter, but it never once stopped on its own — so it never actually
+finished a task. Its failure is specific and repeatable: it re-clicks something
+it has already done.**
 
-| arm | runs | reached goal state | stopped itself (DONE) | median wall | per decision |
-|---|---|---|---|---|---|
-| Jev + Playwriter | 5 | **3** | **0** | 27.9 s | 1.2 s |
-| GLM + Playwriter | 5 | **3** | 4 | 20.6 s | 1.9 s |
-| Jev + Browser Relay | 3 | 0 | 0 | 23.7 s | 1.1 s |
-| GLM + Browser Relay | 3 | 1 | 3 | 17.8 s | 2.4 s |
+| arm | runs | reached goal state | stopped itself (DONE) | why it failed | median wall | per decision |
+|---|---|---|---|---|---|---|
+| Jev + Playwriter | 5 | **3** | **0** | repeated action ×3, transport ×2 | 27.9 s | 1.2 s |
+| GLM + Playwriter | 5 | **3** | 4 | step budget ×1 | 20.6 s | 1.9 s |
+| Jev + Browser Relay | 3 | 0 | 0 | repeated action ×2, empty fill ×1 | 23.7 s | 1.1 s |
+| GLM + Browser Relay | 3 | 1 | 3 | — | 17.8 s | 2.4 s |
 
-Two things are true and they are different questions:
+Two different questions, answered separately:
 
-1. **Goal state reached?** Jev tied GLM on Playwriter (3 of 5) and reached it in
-   3 of 3 runs that were not killed by a transport timeout. Jev clicked the
-   filter and left the page in exactly the state GLM's passing runs ended in.
-2. **Did it finish?** No. Not once. Jev kept re-issuing an action it had already
-   satisfied until the step cap and never declared the task done. GLM stopped
-   itself in 4 of 5 and 3 of 3 runs.
+1. **Goal state reached?** Jev tied GLM on Playwriter — 3 of 5, and 3 of the 3
+   runs not killed by a transport timeout. It clicked the filter and left the
+   page in exactly the state GLM's passing runs ended in.
+2. **Did it finish?** No, in any run. Every Jev non-termination has the same
+   cause: it re-issued an action it had already satisfied until the step cap, and
+   never chose DONE. GLM, same page, same action menu, stopped itself in 4 of 5
+   and 3 of 3.
 
-So the only supported claim is: **Jev decides about twice as fast** (1.1–1.2 s
-vs 1.9–2.4 s per decision). It does not yet finish tasks, because it does not
-recognise "already done". Whether that makes browser automation better is
-unanswered at 5 runs on one task — treat the pass-rate comparison as
-inconclusive, not as Jev losing.
+So the only claim the data supports is **Jev decides about twice as fast**
+(1.1–1.2 s vs 1.9–2.4 s). The pass-rate difference is not statistically
+meaningful at n=5 and n=3 on one task — read it as inconclusive, not as Jev
+losing the task.
 
-**How this was measured.** One loop, one browser bridge, one verifier — only the
-decision model changed. Jev was reached through classifier.dev. Two caveats that
-matter, stated up front rather than in a footnote:
+**Two caveats that matter, stated up front:**
 
-- **This is Jev-derived, one-question framing, not upstream Jev.** Upstream Jev
-  asks two questions (which operation, then which target) in one round trip;
-  classifier.dev returns one classification, so the two collapse into one menu
-  choice. The termination signal upstream gets from its second question is not
-  exercised here — which is exactly where Jev failed. This is the single most
-  important limitation of the result.
+- **This tests classifier.dev's one-question re-framing, not upstream Jev.**
+  Upstream Jev asks two questions per step (operation, then target).
+  classifier.dev returns one classification, so they collapse into one menu
+  choice. The extra termination signal upstream gets from its second question is
+  **not exercised here — and termination is exactly what failed.** Do not read
+  this as a verdict on upstream Jev's stopping behaviour.
 - **One step was removed for fairness.** TodoMVC's "mark a todo complete" box is
-  `opacity: 0`, and the shared action menu never offers it to *either* policy, so
+  `opacity: 0`, so the shared action menu never offers it to *either* policy;
   leaving it in would test the harness, not the model.
 
-Reps are small (5 and 3). Full write-up, per-run buckets and raw JSON:
+Full write-up, per-run buckets and raw JSON:
 [results/browser-fastpath/README.md](results/browser-fastpath/README.md).
 
 **The transport works**: Jev can drive your real Chrome through both Playwriter
 and Browser Relay — navigate, observe, click, type, scroll, and it refuses stale
 targets.
 
-**What to try next:** wire upstream Jev's real two-question TypeSafe framing (or
-confirm classifier.dev can express it) and re-run, since the missing termination
-signal is the observed failure. A task with a long run of repetitive non-terminal
-actions remains the most likely place a fast decider helps.
+**What to try next:** upstream Jev's real two-question framing (or confirm
+classifier.dev can express it) and re-run, since the missing termination signal
+is the observed failure. A task with a long run of repetitive non-terminal
+actions remains the most likely place a fast decider pays off.
 
 ## Question
 

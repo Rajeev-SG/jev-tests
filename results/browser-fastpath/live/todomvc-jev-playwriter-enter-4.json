@@ -17,5 +17,10 @@
   "decision_p50_ms": null,
   "decision_p95_ms": null,
   "history": [],
-  "decisions": []
+  "decisions": [],
+  "goal_state_reached": false,
+  "clean_termination": false,
+  "error_kind": "transport_error",
+  "_backfilled": true,
+  "termination_failure": "transport_error"
 }

@@ -29,33 +29,18 @@ NAME = re.compile(r"^(?P<task>.+?)-(?P<policy>jev|glm)-(?P<backend>browser-relay
                   r"(?P<enter>-enter)?-(?P<rep>\d+)\.json$")
 
 
-def goal_state_from_verification(d: dict) -> bool:
-    """Derive the TodoMVC-compat goal state from the stored verification block.
-
-    Older artifacts predate the `goal_state_reached` field, so re-derive it here
-    rather than trusting a flag that may be absent: two todos saved, both named
-    correctly, and the Active filter applied.
-    """
-    v = d.get("verification") or {}
-    saved = v.get("saved") or []
-    items = [i["text"] for i in v.get("items", [])]
-    return (
-        len(saved) == 2
-        and {x["title"] for x in saved} == {"Email supplier", "Review invoice"}
-        and "active" in (v.get("url") or "")
-        and sorted(items) == ["Email supplier", "Review invoice"]
-    )
-
-
-def clean_term_from_status(d: dict) -> bool:
-    return d.get("status") == "done"
-
-
 def classify(d: dict) -> str:
     if d.get("pass"):
         return "pass"
     v = d.get("verification") or {}
-    got_goal = bool(d.get("goal_state_reached")) or goal_state_from_verification(d)
+    if "goal_state_reached" not in d:
+        # Never guess. A run written before the dual-scoring change must be
+        # backfilled with the real predicate (scripts/backfill_live_artifacts.py)
+        # rather than re-derived here from task-specific literals.
+        raise SystemExit(
+            f"{d.get('_file')} has no goal_state_reached field; run "
+            "scripts/backfill_live_artifacts.py first")
+    got_goal = bool(d["goal_state_reached"])
     if d.get("status") == "error":
         return ("policy_format_error" if d.get("error_kind") == "invalid_decision"
                 else "transport_error")
@@ -74,8 +59,11 @@ def main() -> None:
             continue
         d = json.loads(path.read_text())
         d["_file"] = path.name
-        d["_goal"] = bool(d.get("goal_state_reached")) or goal_state_from_verification(d)
-        d["_clean"] = bool(d.get("clean_termination")) or clean_term_from_status(d)
+        if "goal_state_reached" not in d or "clean_termination" not in d:
+            raise SystemExit(
+                f"{path.name} predates dual scoring; run scripts/backfill_live_artifacts.py")
+        d["_goal"] = bool(d["goal_state_reached"])
+        d["_clean"] = bool(d["clean_termination"])
         d["_bucket"] = classify(d)
         arms[f"{m.group('policy')}+{m.group('backend')}"].append(d)
 
@@ -108,6 +96,8 @@ def main() -> None:
             "median_decision_p50_ms": round(statistics.median(p50)) if p50 else None,
             "median_actions": round(statistics.median([r["jev_decisions"] for r in valid]), 1) if valid else None,
             "decision_model": valid[0].get("decision_model") if valid else None,
+            "termination_failures": dict(collections.Counter(
+                r["termination_failure"] for r in rows if r.get("termination_failure"))),
             "files": [r["_file"] for r in rows],
         }
     OUT.write_text(json.dumps(out, indent=2))

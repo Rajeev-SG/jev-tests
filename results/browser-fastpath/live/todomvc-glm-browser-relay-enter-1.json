@@ -60,5 +60,10 @@
       "text": "Review invoice",
       "page_changed": true
     }
-  ]
+  ],
+  "goal_state_reached": false,
+  "clean_termination": true,
+  "error_kind": "ok",
+  "_backfilled": true,
+  "termination_failure": null
 }

@@ -33,6 +33,19 @@ never stops is not the same as one that never reached the goal.
 | Jev + Browser Relay | 3 | 0 | 0 | 23.7 s | 1085 ms |
 | GLM + Browser Relay | 3 | 1 | 3 | 17.8 s | 2356 ms |
 
+Termination cause per arm (`termination_failure` in each raw file):
+
+| arm | causes |
+|---|---|
+| Jev + Playwriter | repeated_action ×3, transport_error ×2 |
+| Jev + Browser Relay | repeated_action ×2, policy_format_error ×1 |
+| GLM + Playwriter | step_budget ×1 |
+| GLM + Browser Relay | none |
+
+Every Jev failure to terminate is the same cause: the policy re-issued an action
+it had already satisfied while the page did not change. That is now detected and
+named in each artifact rather than only showing up as a slow wall time.
+
 Buckets are explicit and every run is counted (`scripts/summarize_live.py`):
 
 - `jev+playwriter`: 3 `goal_state_only`, 2 `transport_error`
@@ -78,13 +91,17 @@ judgement, not the transport.
 2. **One step removed for fairness** (the invisible complete-checkbox), as above.
 3. **Small n.** 5 and 3 reps per arm is a screen. The direction is consistent
    across both transports, but the pass-rate comparison is inconclusive.
-4. **Transport noise.** Four Playwriter runs and one Browser Relay run died on a
-   10 s transport timeout; one Jev run died because the policy requested a fill
-   with no value. All are preserved in their own buckets, never silently dropped.
-   The empty-fill case is now rejected before it reaches the browser
-   (`InvalidDecision`), separately from transport errors.
+4. **Transport noise.** Two Jev Playwriter runs died on a 10 s transport timeout
+   (bucket `transport_error`); one Jev Browser Relay run died because the policy
+   requested a fill with no value, which is now rejected before it reaches the
+   browser and bucketed separately (`policy_format_error`). Every run is
+   preserved in its own bucket, never silently dropped. No measured wall or
+   decision latencies for these runs are included in any median.
 5. **The summary is generated** by `scripts/summarize_live.py` from the per-rep
-   JSONs, so the aggregate cannot drift from what was run.
+   JSONs, and every bucket is traceable: older artifacts were stamped with the
+   run's own verifier predicate by `scripts/backfill_live_artifacts.py`, so goal
+   state is never re-derived from a task-specific literal. The summarizer refuses
+   to score a run that lacks the field rather than guessing.
 
 ## Reproduce
 

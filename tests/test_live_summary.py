@@ -32,6 +32,9 @@ def row(**kw):  # noqa: A002 - "pass" is a required artifact key
     return base
 
 
+# The summarizer no longer re-derives goal state from the verification block;
+# it trusts the recorded field, which the backfill stamps using the run's own
+# predicate. These fixtures therefore carry the field.
 GOAL = {"url": "https://demo.playwright.dev/todomvc/#/active",
         "items": [{"text": "Email supplier"}, {"text": "Review invoice"}],
         "saved": [{"title": "Email supplier"}, {"title": "Review invoice"}]}
@@ -43,13 +46,19 @@ class ClassifyTest(unittest.TestCase):
 
     def test_goal_without_done_is_goal_state_only(self):
         # This is the exact case the first write-up mis-scored as a failure.
-        d = row(verification=GOAL, status="blocked")
-        self.assertTrue(summ.goal_state_from_verification(d))
+        d = row(verification=GOAL, status="blocked", goal_state_reached=True)
         self.assertEqual(summ.classify(d), "goal_state_only")
+
+    def test_missing_goal_field_is_refused_not_guessed(self):
+        # The summarizer must never re-derive goal state from a task literal.
+        d = {"_file": "x.json", "pass": False, "status": "blocked", "verification": GOAL}
+        with self.assertRaises(SystemExit):
+            summ.classify(d)
 
     def test_no_goal_state_when_verifier_disagrees(self):
         d = row(verification={"url": "https://demo.playwright.dev/todomvc/#/",
-                              "items": [], "saved": []}, status="blocked")
+                              "items": [], "saved": []}, status="blocked",
+                goal_state_reached=False)
         self.assertEqual(summ.classify(d), "no_goal_state")
 
     def test_transport_error_bucket(self):

@@ -45,5 +45,10 @@
       "text": "Email supplier",
       "page_changed": true
     }
-  ]
+  ],
+  "goal_state_reached": false,
+  "clean_termination": false,
+  "error_kind": "ok",
+  "_backfilled": true,
+  "termination_failure": "step_budget"
 }

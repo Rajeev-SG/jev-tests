@@ -115,12 +115,23 @@ def run(root: Path, task_id: str, rep: str, backend: str, fill_enter: bool,
             raise InvalidDecision(f"text helper returned no value for {context.get('field')}")
         return text, meta
 
+    # Track consecutive identical actions with no page change so a policy that
+    # spins on an already-satisfied action is named, not just counted as slow.
+    repeat_tracker = {"last": None, "count": 0, "max": 0}
+
     def guarded_choose(state, goal, history):
         decision = base_choose(state, goal, history)
-        if decision.get("operation") == "TYPE_TEXT":
-            # Defer the value check to the text helper; only guard the obvious
-            # null/empty inline case here.
-            pass
+        signature = (decision.get("operation"), decision.get("target"), decision.get("choice"))
+        recent = history[-1] if history else None
+        changed = (recent or {}).get("page_changed")
+        if recent is not None and changed is False and signature == repeat_tracker["last"]:
+            repeat_tracker["count"] += 1
+        elif recent is not None and changed is False:
+            repeat_tracker["count"] = 1
+        else:
+            repeat_tracker["count"] = 0
+        repeat_tracker["last"] = signature
+        repeat_tracker["max"] = max(repeat_tracker["max"], repeat_tracker["count"])
         return decision
 
     jev_model.choose = guarded_choose
@@ -160,6 +171,7 @@ def run(root: Path, task_id: str, rep: str, backend: str, fill_enter: bool,
         wall_s = time.perf_counter() - started
         error = f"{type(exc).__name__}: {exc}"
         error_kind = "invalid_decision" if isinstance(exc, InvalidDecision) else "terminal_error"
+        termination_failure = None
         summary = {"status": "error", "error_kind": error_kind, "wall_s": round(wall_s, 3), "jev_decisions": 0,
                    "actions": 0, "text_calls": 0, "decision_p50_ms": None,
                    "decision_p95_ms": None, "history": [], "decisions": []}
@@ -167,10 +179,18 @@ def run(root: Path, task_id: str, rep: str, backend: str, fill_enter: bool,
     finally:
         jev_agent.Browser = previous_browser
 
+    if not clean_termination:
+        termination_failure = (
+            "repeated_action" if repeat_tracker["max"] >= 2 else
+            ("transport_error" if error_kind == "transport_error" else
+             ("policy_format_error" if error_kind == "invalid_decision" else "step_budget"))
+        )
     out = {
         "task": task.id, "rep": rep, "backend": backend,
+        "compat": compat,
         "goal_state_reached": goal_state_reached,
         "clean_termination": clean_termination,
+        "termination_failure": termination_failure,
         "policy": policy,
         "condition": f"{policy}+{backend}" + ("+enter" if fill_enter else ""),
         "fill_enter_compat": fill_enter,
