@@ -48,9 +48,9 @@ def is_infra_failure(d: dict) -> bool:
 
 
 def classify(d: dict) -> str:
+    """Bucket one run. Every bucket is defined in the summary legend."""
     if d.get("pass"):
         return "pass"
-    v = d.get("verification") or {}
     if "goal_state_reached" not in d:
         # Never guess. A run written before the dual-scoring change must be
         # backfilled with the real predicate (scripts/backfill_live_artifacts.py)
@@ -59,14 +59,21 @@ def classify(d: dict) -> str:
             f"{d.get('_file')} has no goal_state_reached field; run "
             "scripts/backfill_live_artifacts.py first")
     got_goal = bool(d["goal_state_reached"])
+
     if d.get("status") == "error":
         msg = (d.get("error") or "").lower()
         if any(m.lower() in msg for m in POLICY_FORMAT_MARKERS):
             return "policy_format_error"
         if is_infra_failure(d):
             return "infra_error"
-        return ("policy_format_error" if d.get("error_kind") == "invalid_decision"
-                else "transport_error")
+        if d.get("error_kind") == "invalid_decision":
+            return "policy_format_error"
+        # A crash with no decisions and no actions never reached the policy, so
+        # it is a harness fault, not a model-arm failure.
+        if not d.get("jev_decisions") and not d.get("actions"):
+            return "terminal_error"
+        return "transport_error"
+
     if got_goal:
         return "goal_state_only"
     return "no_goal_state"
@@ -97,6 +104,7 @@ def main() -> None:
             "goal_state_only": "verifier says the goal state was reached, but the policy never declared DONE",
             "no_goal_state": "policy stopped without reaching the goal state",
             "infra_error": "browser/transport infrastructure fault (timeout, no attached tab); excluded from policy rates",
+    "terminal_error": "harness-side crash before the policy produced a decision; excluded from policy rates",
     "transport_error": "browser transport failed mid-run; not a policy result",
             "policy_format_error": "policy emitted an invalid action (e.g. a fill with no value)",
         },
@@ -120,7 +128,13 @@ def main() -> None:
             "goal_state_reached": sum(1 for r in rows if r["_goal"]),
             "clean_termination": sum(1 for r in rows if r["_clean"]),
             "pass": buckets.get("pass", 0),
+            "excluded_from_policy_rates": (
+                buckets.get("infra_error", 0) + buckets.get("terminal_error", 0)),
             "infra_errors_excluded": buckets.get("infra_error", 0),
+            # Both denominators, so a fast failure cannot flatter an arm by being
+            # dropped: all runs, and runs that actually reached the browser.
+            "median_wall_s_all_runs": round(
+                statistics.median([r["wall_s"] for r in rows]), 1) if rows else None,
             "median_wall_s_policy_completed": round(
                 statistics.median([r["wall_s"] for r in valid]), 1) if valid else None,
             "median_decision_p50_ms": round(statistics.median(p50)) if p50 else None,

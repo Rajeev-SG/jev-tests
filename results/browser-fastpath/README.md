@@ -22,20 +22,25 @@ Task: TodoMVC, minus the one step impossible for either arm (the "mark complete"
 checkbox is `opacity: 0`, so the shared menu never offers it to either policy).
 Success = two todos added and the Active filter applied.
 
-| arm | runs | passed | median wall | decision p50 |
-|---|---|---|---|---|
-| Jev + Playwriter | 5 | **4** | **16.1 s** | 1350 ms |
-| GLM + Playwriter | 5 | 4 | 27.1 s | 2619 ms |
-| Jev + Browser Relay | 5 | **5** | 13.1 s | 1218 ms |
-| GLM + Browser Relay | 5 | 1 | 12.8 s | 2453 ms |
+| arm | runs | passed | median wall (all runs) | median wall (completed) | decision p50 |
+|---|---|---|---|---|---|
+| Jev + Playwriter | 5 | **4** | **16.1 s** | 16.1 s | 1350 ms |
+| GLM + Playwriter | 5 | 4 | 27.1 s | 27.1 s | 2619 ms |
+| Jev + Browser Relay | 5 | **5** | 13.1 s | 13.1 s | 1218 ms |
+| GLM + Browser Relay | 5 | 1 | 13.4 s | 12.8 s | 2453 ms |
 
 **Jev passed 9 of 10; GLM passed 5 of 10.** Jev decides roughly 2x faster
-(1.2–1.4 s vs 2.5–2.6 s per decision) and its median wall time is ~40% lower on
-Playwriter (16.1 s vs 27.1 s).
+(1.2–1.4 s vs 2.5–2.6 s per decision), and on Playwriter its median wall time is
+~40% lower (16.1 s vs 27.1 s).
 
-On relay the medians are level (13.1 s vs 12.8 s) but the pass rates are not:
-GLM failed 4 of 5 relay runs, three of them by stopping without applying the
-filter and one by declining to supply a field value. Jev passed 5 of 5.
+**On Browser Relay the speed claim does not hold.** Medians are level (13.1 s vs
+13.4 s all-runs), and over the runs GLM actually completed it is marginally
+quicker (12.8 s vs 13.1 s) — it just fails most of them. The robust Relay
+difference is reliability: Jev 5/5, GLM 1/5 (three stopped without applying the
+filter, one crashed before its first action).
+
+Both denominators are reported because a fast failure would otherwise flatter an
+arm by being excluded. Both medians are printed above.
 
 ## Where Jev still loses
 
@@ -64,6 +69,13 @@ mode is real but rare here, and it is the same class of error as before.
 - **Both run sets are committed.** `live/` holds this corrected run;
   `live-onequestion-shim/` holds the superseded broken run, copied byte-identical
   from commit `9892447` so the correction can be checked rather than trusted.
+
+## Changelog
+
+- **2026-09-20** — run set extended from 5-vs-3 to a balanced 5 reps per arm per
+  transport (20 runs), after the first review flagged the unbalanced design. The
+  pre-extension numbers (Jev 4/5 & 3/3, GLM 4/5 & 1/3) are superseded; every figure
+  above comes from the committed `live/` set only.
 
 ## Reproduce
 

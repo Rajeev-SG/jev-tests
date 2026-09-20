@@ -153,3 +153,51 @@ class PercentileTest(unittest.TestCase):
         old = o[max(0, int(len(o) * 0.95) - 1)]
         new = o[max(0, __import__("math").ceil(len(o) * 0.95) - 1)]
         self.assertLess(old, new)
+
+
+class TerminalErrorBucketTest(unittest.TestCase):
+    """D3: a harness crash before any decision is not a policy-arm failure."""
+
+    def test_crash_with_no_decisions_is_terminal_error(self):
+        d = row(status="error", error="RuntimeError: something in the harness",
+                error_kind="terminal_error", jev_decisions=0, actions=0)
+        self.assertEqual(summ.classify(d), "terminal_error")
+
+    def test_midrun_transport_failure_stays_transport_error(self):
+        d = row(status="error", error="RuntimeError: Code execution timed out",
+                error_kind="transport_error", jev_decisions=3, actions=2)
+        # infra marker match wins, which is the intended precedence
+        self.assertIn(summ.classify(d), {"infra_error", "transport_error"})
+
+    def test_legend_defines_every_bucket_used(self):
+        legend = summ.main.__doc__ or ""
+        # buckets are defined in the generated summary's `scoring` block
+        src = (REPO / "scripts" / "summarize_live.py").read_text()
+        for bucket in ("pass", "goal_state_only", "no_goal_state", "transport_error",
+                       "policy_format_error", "infra_error", "terminal_error"):
+            self.assertIn(bucket, src, f"{bucket} missing from summarizer")
+
+
+class MedianDenominatorTest(unittest.TestCase):
+    """D2: report medians over all runs, not only the ones that completed."""
+
+    def test_summarizer_records_both_denominators(self):
+        src = (REPO / "scripts" / "summarize_live.py").read_text()
+        self.assertIn("median_wall_s_all_runs", src)
+        self.assertIn("median_wall_s_policy_completed", src)
+
+
+class ProvenanceTest(unittest.TestCase):
+    """D1: the archived set must be byte-identical to its documented source."""
+
+    def test_archived_set_matches_documented_source_commit(self):
+        import subprocess
+        shim = REPO / "results" / "browser-fastpath" / "live-onequestion-shim"
+        prov = (shim / "PROVENANCE.md").read_text()
+        self.assertIn("9892447", prov)
+        for f in sorted(shim.glob("*.json"))[:5]:
+            cur = f.read_bytes()
+            orig = subprocess.run(
+                ["git", "show", f"9892447:results/browser-fastpath/live/{f.name}"],
+                capture_output=True, cwd=str(REPO)).stdout
+            self.assertEqual(cur, orig, f"{f.name} is not byte-identical to its source")

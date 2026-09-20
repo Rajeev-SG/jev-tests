@@ -7,16 +7,23 @@ Cheap, empirical tests of Jev / classifier.dev against Rajeev's real workloads.
 **On the one real task we measured, yes — but the sample is small, so treat it as
 a strong signal rather than a proven result.**
 
-| arm | runs | passed | median wall | per decision |
+| arm | runs | passed | median wall (all runs) | per decision |
 |---|---|---|---|---|
 | Jev + Playwriter | 5 | **4** | **16.1 s** | 1.4 s |
 | GLM + Playwriter | 5 | 4 | 27.1 s | 2.6 s |
 | Jev + Browser Relay | 5 | **5** | 13.1 s | 1.2 s |
-| GLM + Browser Relay | 5 | 1 | 12.8 s | 2.5 s |
+| GLM + Browser Relay | 5 | 1 | 13.4 s | 2.5 s |
 
 **Jev passed 9 of 10 runs; GLM passed 5 of 10.** Same loop, same browser bridge,
-same verifier — only the decision model changed. Jev decides about twice as fast,
-and on Playwriter finishes ~40% sooner.
+same verifier — only the decision model changed. Jev decides about twice as fast
+(1.2–1.4 s vs 2.5–2.6 s per decision), and on Playwriter it finishes ~40% sooner
+(16.1 s vs 27.1 s).
+
+**Where the speed claim does not hold:** on Browser Relay the medians are level
+(13.1 s vs 13.4 s). GLM is marginally *quicker* on the runs it completes
+(12.8 s over completed runs vs Jev's 13.1 s) — it just fails most of them there.
+So "Jev is faster" is true on Playwriter and roughly a tie on Relay; the robust
+difference on Relay is reliability (5/5 vs 1/5), not speed.
 
 **A correction, and it matters.** An earlier version of this page reported Jev
 failing 0/5, and I said Jev could not finish tasks. That was wrong — it was a bug
