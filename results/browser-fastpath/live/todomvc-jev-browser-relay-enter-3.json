@@ -1,0 +1,85 @@
+{
+  "task": "todomvc",
+  "rep": "3",
+  "backend": "browser-relay",
+  "policy": "jev",
+  "condition": "jev+browser-relay+enter",
+  "fill_enter_compat": true,
+  "pass": false,
+  "verification": {
+    "url": "https://demo.playwright.dev/todomvc/#/",
+    "items": [
+      {
+        "text": "Email supplier",
+        "completed": false
+      },
+      {
+        "text": "Review invoice",
+        "completed": false
+      }
+    ],
+    "saved": [
+      {
+        "title": "Email supplier",
+        "completed": false
+      },
+      {
+        "title": "Review invoice",
+        "completed": false
+      }
+    ]
+  },
+  "error": null,
+  "source_repo": "Rajeev-SG/web-automation-microbench",
+  "status": "blocked",
+  "wall_s": 18.582,
+  "jev_decisions": 5,
+  "actions": 5,
+  "text_calls": 5,
+  "decision_p50_ms": 1073.0,
+  "decision_p95_ms": 1192.0,
+  "decision_model": "classifier.dev/jev-1.13.0",
+  "decision_tokens": {
+    "input": 0,
+    "output": 0,
+    "reasoning": 0
+  },
+  "text_helper_ms_total": 7945.0,
+  "history": [
+    {
+      "step": 1,
+      "kind": "fill",
+      "choice": "e2",
+      "text": "Email supplier",
+      "page_changed": true
+    },
+    {
+      "step": 2,
+      "kind": "fill",
+      "choice": "e2",
+      "text": "Review invoice",
+      "page_changed": true
+    },
+    {
+      "step": 3,
+      "kind": "fill",
+      "choice": "e2",
+      "text": "",
+      "page_changed": false
+    },
+    {
+      "step": 4,
+      "kind": "fill",
+      "choice": "e2",
+      "text": "",
+      "page_changed": false
+    },
+    {
+      "step": 5,
+      "kind": "fill",
+      "choice": "e2",
+      "text": "",
+      "page_changed": false
+    }
+  ]
+}

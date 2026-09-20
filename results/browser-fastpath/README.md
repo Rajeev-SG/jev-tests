@@ -1,95 +1,86 @@
-# Test 6 — Jev fast path over Playwriter / Browser Relay
+# Test 6b — Jev fast path, live browser run (issue #9)
 
-**State: implementation live-validated on the Mac; screening matrix not yet run.**
+**Verdict, plain English: on a real browser task, Jev did NOT improve browser
+automation. It is faster per decision than GLM but it failed the task; GLM
+completed it.**
 
-## What was validated here
+## What was run
 
-The PR #8 harness was exercised live on this Mac against the real upstream
-`jev_ultrafast.agent.Agent` loop, the real `BridgeBrowser`, the real
-`web-automation-microbench` tasks and their independent verifiers.
+A real browser task, driven live, with one loop, one browser bridge, one
+verifier. The only thing that changed between arms was who picks the next action:
 
-Because no TypeSafe API key exists on this machine (`TYPESAFE_API_KEY` is unset
-and absent from the login keychain), the scored matrix cannot run: Jev's own
-policy calls `https://api.typesafe.ai/v1/systemone` and fails without the key.
-To validate the *transport and observed-node contract* — the part that must be
-proven before scoring — `validation/live_validate.py` substitutes a deterministic
-scripted policy for the TypeSafe calls and leaves everything else (Agent loop,
-snapshot.js, BridgeBrowser, transport, verifier) real.
+| arm | decision model | text helper |
+|---|---|---|
+| Jev | classifier.dev fast tier = `jev-1.13.0` | `openai/gpt-4.1-mini` |
+| baseline | `z-ai/glm-5.3-flash` | `openai/gpt-4.1-mini` |
 
-## Live results
+Task: the TodoMVC microbenchmark, minus its one step that is impossible for BOTH
+arms — "mark a todo complete". That checkbox is `opacity: 0` on the page, and the
+action menu comes from the same `snapshot.js` for either model, so neither can be
+offered it. Removing it makes the comparison fair instead of testing the harness.
+Success = two todos added and the Active filter applied.
 
-| check | result |
-|---|---|
-| `uv sync` with pinned `jev-ultrafast@452c1ad` | **fixed** — first failed; see Bugs |
-| Playwriter: navigate + observe + fill | pass |
-| Playwriter: Enter compatibility commits todos | pass (2 todos saved) |
-| Browser Relay: navigate + observe + fill | pass |
-| Browser Relay: Enter compatibility commits todos | pass (2 todos saved) |
-| Observed-node identity, model never supplies selectors | pass |
-| Stale/covered target fails closed and forces re-observation | pass |
-| Real-work URLs load and observe (chanel, porsche, rajeevg ×2) | pass |
+Reps: 5 per arm on Playwriter, 3 per arm on Browser Relay.
 
-Raw validation JSON is committed under `validation/`.
+## Result
 
-## Bugs found and fixed live
+| arm | valid runs | passed | median wall | decision p50 | model |
+|---|---|---|---|---|---|
+| Jev + Playwriter | 3 | **0** | 27.9 s | 1220 ms | jev-1.13.0 |
+| GLM + Playwriter | 5 | **3** | 20.6 s | 1891 ms | glm-5.3-flash |
+| Jev + Browser Relay | 2 | **0** | 23.7 s | 1085 ms | jev-1.13.0 |
+| GLM + Browser Relay | 3 | **1** | 17.8 s | 2356 ms | glm-5.3-flash |
 
-1. **`uv sync` could not resolve.** `requires-python = ">=3.11"` conflicted with
-   `jev-ultrafast`'s `>=3.12`. Fixed to `>=3.12`.
-2. **hatchling rejected the build.** The pinned git dependency needs
-   `[tool.hatch.metadata] allow-direct-references = true`. Added.
-3. **Transport output formats differ** (Browser Relay prints bare strings / JSON;
-   Playwriter prints a `__JEV_JSON__`-prefixed line). The existing
-   `_decode_jsonish` already handled all three; regression tests added.
+**Jev: 0 of 5 valid runs passed. GLM: 4 of 8 passed.** Jev's decisions are
+~1.5–2× faster (about 1.1–1.2 s vs 1.9–2.4 s each), but that speed does not
+translate into a finished task.
 
-Focused tests for every bug above and for the observed-node contract live in
-`tests/test_browser_fastpath.py`.
+## Why Jev fails
 
-## Blockers before the scored matrix can run
+Every Jev failure has the same shape. It performs the right first actions, then
+gets stuck re-issuing an action it has already satisfied and never declares the
+task done:
 
-1. **No TypeSafe API key on this Mac.** Jev's `choose()`/`field_text()` call
-   TypeSafe directly; without `TYPESAFE_API_KEY` every decision raises. Prior
-   Test 6 work used classifier.dev instead and reported Jev that way. Either
-   provide a TypeSafe key or wire the classifier.dev client from
-   `lib/jevbench.py` into `jev_ultrafast.model.post_json`.
-2. **A todo-toggle blindness (independent of the Enter gap).** TodoMVC's
-   per-item complete checkbox is `opacity: 0` (the visible box is a CSS
-   pseudo-element). Jev's snapshot visibility filter uses
-   `checkVisibility({checkOpacity:true})`, so **the toggle is never offered in
-   the action space at all**. On the canonical TodoMVC task, `Mark ONLY
-   "Email supplier" complete` is therefore impossible for *stock* Jev on any
-   transport — a second, separate reason the canonical task fails beyond the
-   documented missing-Enter action. Recorded here as evidence; do not hide it.
-3. **Browser Relay needs a focused tab for keystrokes.** `key Enter` is dropped
-   when the attached tab is backgrounded. With the tab focused, Enter commits
-   reliably (3/3 plain and 3/3 with `--text "\r"`). The harness must call
-   `browser-relay focus --tab <id>` before a compat run, or the compat row will
-   under-report.
-4. **Browser Relay needed a Chrome with the extension loaded.** No everyday-Chrome
-   profile was connected during this run; validation used a dedicated Chrome for
-   Testing instance with the relay extension loaded. Confirm the user's profile
-   is open with the extension enabled before scoring.
+```
+fill "Email supplier"   ✓
+fill "Review invoice"   ✓
+fill e2 (the same field again)   ← no page change
+click e5 (Active)       ✓
+click e5 again           ← already on Active
+click e5 again
+click e5 again            → blocked at the step budget
+```
 
-## Still to do (requires the key + focused Chrome)
+GLM, on the same page and the same menu, stops and emits `DONE`. So the gap is
+decision quality — specifically Jev not recognising "already done" and not
+choosing DONE — not the transport, which worked for both.
 
-Screening matrix with 2 reps per row, promotion to 5 for plausible frontier rows,
-and the measured metrics listed in `docs/browser-fastpath.md`.
+## Caveats, stated plainly
 
-## Repair pass (merge-guard findings)
+- **Small n.** 5 and 3 reps per arm is a screen, not a trend. The direction is
+  consistent across both transports, but these are small numbers.
+- **One task.** This is TodoMVC, a controlled microbenchmark. It says nothing
+  about richer pages yet.
+- **Four Playwriter runs raised a 10 s transport timeout** (2 Jev, 0 GLM). Those
+  are counted as errors and excluded from the valid-run columns; they are the
+  harness, not the policy, and they are preserved in the raw JSON.
+- **Jev was reached through classifier.dev**, whose fast tier is Jev
+  (`jev-1.13.0`). This Mac has no TypeSafe key. The model is the same Jev the
+  offline Test 6 numbers used; the prompt framing differs (one question instead
+  of two), which is a real difference from the upstream TypeSafe path.
+- **The "mark complete" step was removed** for fairness, as described above. On
+  the unmodified task both arms fail, which is a finding about the shared action
+  space, not about either model.
 
-Two review findings were fixed in a single repair pass:
+## Reproduce
 
-- **F1 (correctness):** the browser-harness control monkey-patched
-  `jev_agent.Browser` at module level without restoring it, and `run.py` did the
-  same permanently. `microbench.run_one` now captures the previous class and
-  restores it in a `finally`; `run.py` restores in a `finally` too, so one
-  condition cannot leak its patch into the next.
-- **F2 (efficiency):** `observe()`/`fresh()` re-ran the full `snapshot.js` (which
-  serialises the whole page) just to answer a freshness check, biasing the very
-  latency metric the PR measures. `observe()` now also records a small
-  `LITE_MARKER` identity tuple and `fresh()` compares that; `fill` now uses the
-  per-node guard like `click`/`select`. Safety is unchanged because `act()`
-  still re-validates the exact observed node immediately before input. Measured
-  effect on the relay TodoMVC run: wall time fell from ~13.9 s to ~3.8 s.
+```sh
+export OPENROUTER_API_KEY=<key>          # GLM baseline + text helper
+export JEV_USE_CACHE=0                   # measure real decision latency
+JEV_BROWSER_BACKEND=playwriter PLAYWRITER_SESSION=<id> \
+  uv run python scripts/live_jev_run.py --task todomvc --backend playwriter \
+    --policy jev --fill-enter --compat --rep 1
+```
 
-Regression tests: `tests/test_browser_fastpath.py` (`TestBrowserPatchRestore`,
-`TestFreshnessProbe`).
+Raw per-rep JSON: `results/browser-fastpath/live/`. Aggregate:
+`results/browser-fastpath/live-summary.json`.

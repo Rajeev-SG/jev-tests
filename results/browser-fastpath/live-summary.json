@@ -1,0 +1,57 @@
+{
+  "test": "Test 6b \u2014 Jev fast path, live browser run (issue #9)",
+  "run_date": "2026-09-20",
+  "task": "todomvc (Jev-compatible variant: two todos + Active filter; the invisible complete-checkbox step removed)",
+  "harness": "one loop, one BridgeBrowser, one verifier; only the policy differs (Jev via classifier.dev vs GLM-5.3-Flash)",
+  "decision_model_jev": "classifier.dev fast = jev-1.13.0",
+  "decision_model_glm": "z-ai/glm-5.3-flash",
+  "text_helper": "openai/gpt-4.1-mini (same class of one-field extraction for both)",
+  "reps": 5,
+  "note_reps": "playwriter 5 reps/policy; browser-relay 3 reps/policy",
+  "results": {
+    "jev+playwriter": {
+      "reps": 5,
+      "passes": 0,
+      "transport_errors": 2,
+      "valid_runs": 3,
+      "valid_passes": 0,
+      "median_wall_s_valid": 27.9,
+      "decision_p50_ms_median": 1220,
+      "decision_model": "classifier.dev/jev-1.13.0",
+      "median_jev_decisions": 8
+    },
+    "glm+playwriter": {
+      "reps": 5,
+      "passes": 3,
+      "transport_errors": 0,
+      "valid_runs": 5,
+      "valid_passes": 3,
+      "median_wall_s_valid": 20.6,
+      "decision_p50_ms_median": 1891,
+      "decision_model": "z-ai/glm-5.3-flash",
+      "median_jev_decisions": 4
+    },
+    "jev+browser-relay": {
+      "reps": 3,
+      "passes": 0,
+      "transport_errors": 1,
+      "valid_runs": 2,
+      "valid_passes": 0,
+      "median_wall_s_valid": 23.7,
+      "decision_p50_ms_median": 1085,
+      "decision_model": "classifier.dev/jev-1.13.0",
+      "median_jev_decisions": 5.0
+    },
+    "glm+browser-relay": {
+      "reps": 3,
+      "passes": 1,
+      "transport_errors": 0,
+      "valid_runs": 3,
+      "valid_passes": 1,
+      "median_wall_s_valid": 17.8,
+      "decision_p50_ms_median": 2356,
+      "decision_model": "z-ai/glm-5.3-flash",
+      "median_jev_decisions": 3
+    }
+  }
+}

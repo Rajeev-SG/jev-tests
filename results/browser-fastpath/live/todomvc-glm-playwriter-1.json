@@ -1,0 +1,60 @@
+{
+  "task": "todomvc",
+  "rep": "1",
+  "backend": "playwriter",
+  "policy": "glm",
+  "condition": "glm+playwriter",
+  "fill_enter_compat": false,
+  "pass": false,
+  "verification": {
+    "url": "https://demo.playwright.dev/todomvc/#/",
+    "items": [],
+    "saved": []
+  },
+  "error": null,
+  "source_repo": "Rajeev-SG/web-automation-microbench",
+  "status": "blocked",
+  "wall_s": 28.166,
+  "jev_decisions": 5,
+  "actions": 5,
+  "text_calls": 4,
+  "decision_p50_ms": 2561.0,
+  "decision_p95_ms": 2794.0,
+  "history": [
+    {
+      "step": 1,
+      "kind": "click",
+      "choice": "e3",
+      "text": null,
+      "page_changed": false
+    },
+    {
+      "step": 2,
+      "kind": "fill",
+      "choice": "e2",
+      "text": "Email supplier",
+      "page_changed": true
+    },
+    {
+      "step": 3,
+      "kind": "fill",
+      "choice": "e2",
+      "text": "Email supplier",
+      "page_changed": false
+    },
+    {
+      "step": 4,
+      "kind": "fill",
+      "choice": "e2",
+      "text": "Email supplier",
+      "page_changed": false
+    },
+    {
+      "step": 5,
+      "kind": "fill",
+      "choice": "e2",
+      "text": "Email supplier",
+      "page_changed": false
+    }
+  ]
+}

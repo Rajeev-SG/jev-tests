@@ -2,38 +2,42 @@
 
 Cheap, empirical tests of Jev / classifier.dev against Rajeev's real workloads.
 
-## Plain-English answer: did the browser fast path work, and does it help?
+## Plain-English answer: does Jev improve browser automation?
 
-**Did it work? Yes — the plumbing works.** Jev can now drive your real Chrome
-instead of a throwaway browser: it picks a button or field it can actually see
-on the page, and the code turns that choice into a real click or type. We tested
-this live on this Mac against both routes (Playwriter and Browser Relay): page
-loading, reading the page, clicking, typing and scrolling all worked, and if the
-page moves underneath it, Jev refuses to act on the stale target instead of
-clicking the wrong thing.
+**Measured on a real browser task, on this machine: no.** Jev is faster per
+decision, but it failed the task and the GLM baseline finished it.
 
-**Did it make browser automation better? We do not know yet, and we will not
-pretend otherwise.** Jev's decision-making calls a paid service called TypeSafe,
-and this Mac has no TypeSafe key, so the scored head-to-head test could not run.
-Until that test runs, there is no measured speed or success improvement to claim.
+| arm | runs that finished | passed | median wall | per decision |
+|---|---|---|---|---|
+| Jev + Playwriter | 3 | **0** | 27.9 s | 1.2 s |
+| GLM + Playwriter | 5 | **3** | 20.6 s | 1.9 s |
+| Jev + Browser Relay | 2 | **0** | 23.7 s | 1.1 s |
+| GLM + Browser Relay | 3 | **1** | 17.8 s | 2.4 s |
 
-**Can it improve browser automation? Possibly, on narrow repetitive work — but
-two things block it today:**
+Jev decides roughly twice as fast as GLM, yet it never completed the task in any
+run. The reason is consistent: Jev does the first actions correctly, then gets
+stuck re-clicking something it has already done and never says the task is
+finished. GLM, on the same page with the same menu of actions, stops and declares
+DONE.
 
-1. **No TypeSafe key on this Mac.** Without it, Jev cannot make a single
-   decision, so nothing downstream can be measured. Fix: supply a key, or point
-   Jev at classifier.dev (the free route the earlier tests already used).
-2. **Jev cannot tick a checkbox on the standard test page (TodoMVC).** The
-   per-item "complete" box is invisible to the eye (`opacity: 0`) but clickable
-   for a human, so Jev's "only act on things I can see" rule drops it. On top of
-   the already-known limitation that Jev has no Enter key, this means the
-   standard test cannot be finished by Jev as-is. Both are recorded as findings,
-   not hidden.
+**How this was measured.** One loop, one browser bridge, one verifier — only the
+decision model changed. Jev was reached through classifier.dev, whose fast tier
+*is* Jev (`jev-1.13.0`); this Mac has no TypeSafe key. We removed the one step
+that is impossible for both models on TodoMVC (marking a todo complete: that
+checkbox is invisible to the action menu for either policy), so the comparison
+tests the model, not the harness. 5 reps per arm on Playwriter, 3 on Browser
+Relay. Small numbers — a screen, not a trend — but the direction is the same on
+both transports. Full write-up, caveats and raw per-rep JSON:
+[results/browser-fastpath/README.md](results/browser-fastpath/README.md).
 
-**So, today:** the bridge is real, tested and safe to reuse; the "does Jev speed
-up browser work?" question is still open, and the next step is a TypeSafe key
-(or the classifier.dev wiring) plus a task that Jev's action space can actually
-complete. Details: [results/browser-fastpath/README.md](results/browser-fastpath/README.md).
+**The transport works**: Jev can drive your real Chrome through both Playwriter
+and Browser Relay — navigate, observe, click, type, scroll, and it refuses stale
+targets. What does not work yet is Jev's judgement about when a task is done.
+
+**Where it might still help:** nowhere we can recommend today. The next
+worthwhile experiment is a task where the win is a long run of repetitive,
+non-terminal actions (a spreadsheet, a paginated list), where deciding faster
+matters and "when to stop" is not the hard part.
 
 ## Question
 
