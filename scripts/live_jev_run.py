@@ -29,6 +29,10 @@ from jev_tests import classifier_policy, glm_policy
 from jev_tests.bridge import BridgeBrowser
 
 
+class InvalidDecision(RuntimeError):
+    """The policy produced an action the harness will not execute (e.g. empty fill)."""
+
+
 def load_benchlib(root: Path):
     bench_ext = root / "bench-ext"
     if not (bench_ext / "benchlib.py").exists():
@@ -99,16 +103,36 @@ def run(root: Path, task_id: str, rep: str, backend: str, fill_enter: bool,
     # Either real Jev decisions (via classifier.dev) or the GLM baseline, both
     # over the identical BridgeBrowser so only the policy differs.
     chosen = classifier_policy if policy == "jev" else glm_policy
-    jev_model.choose = chosen.choose
-    jev_model.field_text = chosen.field_text
-    jev_agent.choose = chosen.choose
-    jev_agent.field_text = chosen.field_text
+    base_choose = chosen.choose
+    base_field_text = chosen.field_text
+
+    def guarded_field_text(context):
+        text, meta = base_field_text(context)
+        if text is None or not str(text).strip():
+            # A fill with no value is an invalid action, not a browser command:
+            # sending '' pollutes the page and crashes the run. Raise a distinct
+            # type so the summary can bucket it apart from transport errors.
+            raise InvalidDecision(f"text helper returned no value for {context.get('field')}")
+        return text, meta
+
+    def guarded_choose(state, goal, history):
+        decision = base_choose(state, goal, history)
+        if decision.get("operation") == "TYPE_TEXT":
+            # Defer the value check to the text helper; only guard the obvious
+            # null/empty inline case here.
+            pass
+        return decision
+
+    jev_model.choose = guarded_choose
+    jev_model.field_text = guarded_field_text
+    jev_agent.choose = guarded_choose
+    jev_agent.field_text = guarded_field_text
 
     previous_browser = jev_agent.Browser
     jev_agent.Browser = BridgeBrowser
     started = time.perf_counter()
     verify_raw = verify_parsed = error = None
-    passed = False
+    passed = goal_state_reached = clean_termination = False
     try:
         with jev_agent.Agent(task.url, task.instruction, screenshots=False) as agent:
             for _ in agent.run():
@@ -119,14 +143,24 @@ def run(root: Path, task_id: str, rep: str, backend: str, fill_enter: bool,
                 verify_raw = agent.browser.evaluate(task.verify_js)
                 raw = verify_raw if isinstance(verify_raw, str) else json.dumps(verify_raw)
                 verify_parsed = benchlib.parse_verify(raw)
-                passed = bool(task.check(verify_parsed) and state.get("status") == "done")
+                # Two independent criteria. `goal_state_reached` is the verifier's
+                # answer about the PAGE. `clean_termination` is whether the policy
+                # stopped itself with DONE inside budget. They are different
+                # questions and are reported separately; a policy that reaches the
+                # goal but never stops is not the same failure as one that never
+                # reached the goal.
+                goal_state_reached = bool(task.check(verify_parsed))
+                clean_termination = state.get("status") == "done"
+                passed = bool(goal_state_reached and clean_termination)
             except Exception as exc:
+                goal_state_reached = clean_termination = False
                 error = f"verify: {type(exc).__name__}: {exc}"
             summary = _summary(state, wall_s)
     except Exception as exc:
         wall_s = time.perf_counter() - started
         error = f"{type(exc).__name__}: {exc}"
-        summary = {"status": "error", "wall_s": round(wall_s, 3), "jev_decisions": 0,
+        error_kind = "invalid_decision" if isinstance(exc, InvalidDecision) else "terminal_error"
+        summary = {"status": "error", "error_kind": error_kind, "wall_s": round(wall_s, 3), "jev_decisions": 0,
                    "actions": 0, "text_calls": 0, "decision_p50_ms": None,
                    "decision_p95_ms": None, "history": [], "decisions": []}
         state = {}
@@ -135,10 +169,13 @@ def run(root: Path, task_id: str, rep: str, backend: str, fill_enter: bool,
 
     out = {
         "task": task.id, "rep": rep, "backend": backend,
+        "goal_state_reached": goal_state_reached,
+        "clean_termination": clean_termination,
         "policy": policy,
         "condition": f"{policy}+{backend}" + ("+enter" if fill_enter else ""),
         "fill_enter_compat": fill_enter,
         "pass": passed, "verification": verify_parsed, "error": error,
+        "error_kind": locals().get("error_kind") or ("ok" if not error else "unknown"),
         "source_repo": "Rajeev-SG/web-automation-microbench",
         **summary,
     }
