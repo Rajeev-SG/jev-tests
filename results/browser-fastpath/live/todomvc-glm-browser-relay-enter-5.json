@@ -1,13 +1,13 @@
 {
   "task": "todomvc",
   "rep": "5",
-  "backend": "playwriter",
+  "backend": "browser-relay",
   "compat": true,
   "goal_state_reached": true,
   "clean_termination": true,
   "termination_failure": null,
-  "policy": "jev",
-  "condition": "jev+playwriter+enter",
+  "policy": "glm",
+  "condition": "glm+browser-relay+enter",
   "fill_enter_compat": true,
   "pass": true,
   "verification": {
@@ -37,42 +37,50 @@
   "error_kind": "ok",
   "source_repo": "Rajeev-SG/web-automation-microbench",
   "status": "done",
-  "wall_s": 16.147,
-  "jev_decisions": 4,
-  "actions": 3,
+  "wall_s": 19.616,
+  "jev_decisions": 5,
+  "actions": 4,
   "text_calls": 2,
-  "decision_p50_ms": 1517.0,
-  "decision_p95_ms": 2614.0,
+  "decision_p50_ms": 2734.0,
+  "decision_p95_ms": 3016.0,
   "decision_latencies_ms": [
-    1312.0,
-    1613.0,
-    2614.0,
-    1421.0
+    1584.0,
+    3016.0,
+    2734.0,
+    2583.0,
+    2921.0
   ],
-  "decision_model": "classifier.dev/jev-1.13.0",
+  "decision_model": "z-ai/glm-5.3-flash",
   "decision_tokens": {
-    "input": 0,
-    "output": 0,
-    "reasoning": 0
+    "input": 3124,
+    "output": 216,
+    "reasoning": 134
   },
-  "text_helper_ms_total": 3936.0,
+  "text_helper_ms_total": 2957.0,
   "history": [
     {
       "step": 1,
+      "kind": "click",
+      "choice": "e3",
+      "text": null,
+      "page_changed": false
+    },
+    {
+      "step": 2,
       "kind": "fill",
       "choice": "e2",
       "text": "Email supplier",
       "page_changed": true
     },
     {
-      "step": 2,
+      "step": 3,
       "kind": "fill",
       "choice": "e2",
       "text": "Review invoice",
       "page_changed": true
     },
     {
-      "step": 3,
+      "step": 4,
       "kind": "click",
       "choice": "e5",
       "text": null,

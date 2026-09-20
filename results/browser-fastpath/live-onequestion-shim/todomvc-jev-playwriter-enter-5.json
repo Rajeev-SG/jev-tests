@@ -102,10 +102,5 @@
       "text": null,
       "page_changed": false
     }
-  ],
-  "goal_state_reached": true,
-  "clean_termination": false,
-  "error_kind": "ok",
-  "_backfilled": true,
-  "termination_failure": "repeated_action"
+  ]
 }

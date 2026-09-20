@@ -17,6 +17,7 @@ import datetime as dt
 import importlib
 import json
 import os
+import math
 import statistics
 import sys
 import time
@@ -213,6 +214,9 @@ def _summary(state: dict, wall_s: float) -> dict:
     decisions = state.get("decisions", [])
     dms = [float(d["latency_ms"]) for d in decisions if d.get("latency_ms") is not None]
     ordered = sorted(dms)
+    # Nearest-rank p95. The naive `int(n*0.95)-1` picks the MINIMUM for n=2
+    # (int(1.9)-1 == 0), producing a p95 below p50. ceil() is the correct rank.
+    p95_index = max(0, math.ceil(len(ordered) * 0.95) - 1) if ordered else 0
     total_in = total_out = total_reason = 0
     for d in decisions:
         u = (d.get("usage") or {})
@@ -220,14 +224,20 @@ def _summary(state: dict, wall_s: float) -> dict:
         total_out += u.get("completion_tokens") or u.get("output_tokens") or 0
         total_reason += (u.get("completion_tokens_details") or {}).get("reasoning_tokens") or 0
     text_ms = sum(float(h.get("text_latency_ms") or 0) for h in state.get("history", []))
+    p50 = round(statistics.median(dms), 1) if dms else None
+    p95 = round(ordered[p95_index], 1) if dms else None
+    if p50 is not None and p95 is not None:
+        assert p95 >= p50, f"p95 {p95} below p50 {p50}: percentile bug"
     return {
         "status": state.get("status"),
         "wall_s": round(wall_s, 3),
         "jev_decisions": len(decisions),
         "actions": len(state.get("history", [])),
         "text_calls": len(state.get("text_calls", [])),
-        "decision_p50_ms": round(statistics.median(dms), 1) if dms else None,
-        "decision_p95_ms": round(ordered[max(0, int(len(ordered) * 0.95) - 1)], 1) if dms else None,
+        "decision_p50_ms": p50,
+        "decision_p95_ms": p95,
+        # Raw latencies, so any percentile in the summary is auditable.
+        "decision_latencies_ms": [round(x, 1) for x in dms],
         "decision_model": decisions[0].get("model") if decisions else None,
         "decision_tokens": {"input": total_in, "output": total_out, "reasoning": total_reason},
         "text_helper_ms_total": round(text_ms, 1),

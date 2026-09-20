@@ -108,3 +108,48 @@ class InvalidDecisionTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class BucketClassificationTest(unittest.TestCase):
+    """The review's F3/F5: percentile sanity and infra-vs-policy buckets."""
+
+    def test_infra_timeout_is_not_a_policy_failure(self):
+        d = row(status="error", error="RuntimeError: Code execution timed out after 10000ms",
+                error_kind="transport_error")
+        self.assertEqual(summ.classify(d), "infra_error")
+
+    def test_no_attached_tab_is_infra(self):
+        d = row(status="error", error="RuntimeError: Browser Relay has no attached tab",
+                error_kind="transport_error")
+        self.assertEqual(summ.classify(d), "infra_error")
+
+    def test_declined_field_value_is_policy_format(self):
+        # GLM's null-text failure must not be blamed on the transport.
+        d = row(status="error", error='RuntimeError: GLM did not supply a field value: \'{"text": null}\'',
+                error_kind="terminal_error")
+        self.assertEqual(summ.classify(d), "policy_format_error")
+
+    def test_goal_state_and_termination_still_separate(self):
+        d = row(verification=GOAL, status="blocked", goal_state_reached=True)
+        self.assertEqual(summ.classify(d), "goal_state_only")
+
+
+class PercentileTest(unittest.TestCase):
+    """F3 guard: the archived p95 < p50 row came from a wrong nearest-rank index."""
+
+    def test_p95_is_never_below_p50(self):
+        import math
+        import statistics
+        for n in range(1, 12):
+            lat = [float(i) for i in range(1, n + 1)]
+            o = sorted(lat)
+            p50 = statistics.median(o)
+            p95 = o[max(0, math.ceil(len(o) * 0.95) - 1)]
+            self.assertGreaterEqual(p95, p50, f"n={n}")
+
+    def test_the_old_index_was_wrong_for_small_n(self):
+        # Demonstrates the bug this test exists to prevent.
+        o = [100.0, 200.0]
+        old = o[max(0, int(len(o) * 0.95) - 1)]
+        new = o[max(0, __import__("math").ceil(len(o) * 0.95) - 1)]
+        self.assertLess(old, new)

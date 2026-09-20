@@ -37,19 +37,25 @@
   "error_kind": "ok",
   "source_repo": "Rajeev-SG/web-automation-microbench",
   "status": "done",
-  "wall_s": 16.409,
+  "wall_s": 15.067,
   "jev_decisions": 4,
   "actions": 3,
   "text_calls": 2,
-  "decision_p50_ms": 1570.5,
-  "decision_p95_ms": 1693.0,
+  "decision_p50_ms": 1296.5,
+  "decision_p95_ms": 2551.0,
+  "decision_latencies_ms": [
+    1326.0,
+    1238.0,
+    2551.0,
+    1267.0
+  ],
   "decision_model": "classifier.dev/jev-1.13.0",
   "decision_tokens": {
     "input": 0,
     "output": 0,
     "reasoning": 0
   },
-  "text_helper_ms_total": 3887.0,
+  "text_helper_ms_total": 3501.0,
   "history": [
     {
       "step": 1,

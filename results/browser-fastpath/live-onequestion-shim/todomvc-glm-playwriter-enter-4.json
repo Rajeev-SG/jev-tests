@@ -67,10 +67,5 @@
       "text": null,
       "page_changed": true
     }
-  ],
-  "goal_state_reached": true,
-  "clean_termination": true,
-  "error_kind": "ok",
-  "_backfilled": true,
-  "termination_failure": null
+  ]
 }

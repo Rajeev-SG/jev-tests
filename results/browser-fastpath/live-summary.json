@@ -4,29 +4,36 @@
     "pass": "goal state reached by the verifier AND the policy stopped with DONE",
     "goal_state_only": "verifier says the goal state was reached, but the policy never declared DONE",
     "no_goal_state": "policy stopped without reaching the goal state",
-    "transport_error": "browser transport failed; not a policy result",
+    "infra_error": "browser/transport infrastructure fault (timeout, no attached tab); excluded from policy rates",
+    "transport_error": "browser transport failed mid-run; not a policy result",
     "policy_format_error": "policy emitted an invalid action (e.g. a fill with no value)"
   },
   "note": "Only `+enter` runs are scored (the Enter-compat condition). Timed-out or format-error runs are kept in their buckets, never dropped.",
   "arms": {
     "glm+browser-relay": {
-      "runs": 3,
+      "runs": 5,
       "buckets": {
-        "pass": 2,
-        "no_goal_state": 1
+        "no_goal_state": 3,
+        "policy_format_error": 1,
+        "pass": 1
       },
-      "goal_state_reached": 2,
+      "goal_state_reached": 1,
       "clean_termination": 3,
-      "pass": 2,
-      "median_wall_s_policy_completed": 22.9,
-      "median_decision_p50_ms": 2064,
-      "median_actions": 4,
+      "pass": 1,
+      "infra_errors_excluded": 0,
+      "median_wall_s_policy_completed": 12.8,
+      "median_decision_p50_ms": 2453,
+      "median_actions": 3.0,
       "decision_model": "z-ai/glm-5.3-flash",
-      "termination_failures": {},
+      "termination_failures": {
+        "step_budget": 2
+      },
       "files": [
         "todomvc-glm-browser-relay-enter-1.json",
         "todomvc-glm-browser-relay-enter-2.json",
-        "todomvc-glm-browser-relay-enter-3.json"
+        "todomvc-glm-browser-relay-enter-3.json",
+        "todomvc-glm-browser-relay-enter-4.json",
+        "todomvc-glm-browser-relay-enter-5.json"
       ]
     },
     "glm+playwriter": {
@@ -36,15 +43,14 @@
         "no_goal_state": 1
       },
       "goal_state_reached": 4,
-      "clean_termination": 4,
+      "clean_termination": 5,
       "pass": 4,
-      "median_wall_s_policy_completed": 23.2,
-      "median_decision_p50_ms": 3444,
+      "infra_errors_excluded": 0,
+      "median_wall_s_policy_completed": 27.1,
+      "median_decision_p50_ms": 2619,
       "median_actions": 4,
       "decision_model": "z-ai/glm-5.3-flash",
-      "termination_failures": {
-        "step_budget": 1
-      },
+      "termination_failures": {},
       "files": [
         "todomvc-glm-playwriter-enter-1.json",
         "todomvc-glm-playwriter-enter-2.json",
@@ -54,22 +60,25 @@
       ]
     },
     "jev+browser-relay": {
-      "runs": 3,
+      "runs": 5,
       "buckets": {
-        "pass": 3
+        "pass": 5
       },
-      "goal_state_reached": 3,
-      "clean_termination": 3,
-      "pass": 3,
-      "median_wall_s_policy_completed": 13.7,
-      "median_decision_p50_ms": 1324,
+      "goal_state_reached": 5,
+      "clean_termination": 5,
+      "pass": 5,
+      "infra_errors_excluded": 0,
+      "median_wall_s_policy_completed": 13.1,
+      "median_decision_p50_ms": 1218,
       "median_actions": 4,
       "decision_model": "classifier.dev/jev-1.13.0",
       "termination_failures": {},
       "files": [
         "todomvc-jev-browser-relay-enter-1.json",
         "todomvc-jev-browser-relay-enter-2.json",
-        "todomvc-jev-browser-relay-enter-3.json"
+        "todomvc-jev-browser-relay-enter-3.json",
+        "todomvc-jev-browser-relay-enter-4.json",
+        "todomvc-jev-browser-relay-enter-5.json"
       ]
     },
     "jev+playwriter": {
@@ -79,13 +88,16 @@
         "no_goal_state": 1
       },
       "goal_state_reached": 4,
-      "clean_termination": 5,
+      "clean_termination": 4,
       "pass": 4,
-      "median_wall_s_policy_completed": 15.1,
-      "median_decision_p50_ms": 1228,
+      "infra_errors_excluded": 0,
+      "median_wall_s_policy_completed": 16.1,
+      "median_decision_p50_ms": 1350,
       "median_actions": 4,
       "decision_model": "classifier.dev/jev-1.13.0",
-      "termination_failures": {},
+      "termination_failures": {
+        "repeated_action": 1
+      },
       "files": [
         "todomvc-jev-playwriter-enter-1.json",
         "todomvc-jev-playwriter-enter-2.json",

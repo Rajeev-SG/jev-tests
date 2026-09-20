@@ -37,19 +37,25 @@
   "error_kind": "ok",
   "source_repo": "Rajeev-SG/web-automation-microbench",
   "status": "done",
-  "wall_s": 23.203,
+  "wall_s": 36.333,
   "jev_decisions": 4,
   "actions": 3,
   "text_calls": 2,
-  "decision_p50_ms": 3444.5,
-  "decision_p95_ms": 3473.0,
+  "decision_p50_ms": 4568.5,
+  "decision_p95_ms": 15823.0,
+  "decision_latencies_ms": [
+    3401.0,
+    15823.0,
+    5736.0,
+    2117.0
+  ],
   "decision_model": "z-ai/glm-5.3-flash",
   "decision_tokens": {
     "input": 2356,
-    "output": 206,
-    "reasoning": 146
+    "output": 343,
+    "reasoning": 284
   },
-  "text_helper_ms_total": 3686.0,
+  "text_helper_ms_total": 4241.0,
   "history": [
     {
       "step": 1,
