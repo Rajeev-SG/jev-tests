@@ -144,6 +144,8 @@ def run(root: Path, task_id: str, rep: str, backend: str, fill_enter: bool,
     started = time.perf_counter()
     verify_raw = verify_parsed = error = None
     passed = goal_state_reached = clean_termination = False
+    error_kind = "ok"
+    termination_failure = None
     try:
         with jev_agent.Agent(task.url, task.instruction, screenshots=False) as agent:
             for _ in agent.run():
@@ -195,7 +197,7 @@ def run(root: Path, task_id: str, rep: str, backend: str, fill_enter: bool,
         "condition": f"{policy}+{backend}" + ("+enter" if fill_enter else ""),
         "fill_enter_compat": fill_enter,
         "pass": passed, "verification": verify_parsed, "error": error,
-        "error_kind": locals().get("error_kind") or ("ok" if not error else "unknown"),
+        "error_kind": error_kind,
         "source_repo": "Rajeev-SG/web-automation-microbench",
         **summary,
     }

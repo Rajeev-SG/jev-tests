@@ -1,9 +1,12 @@
-"""Offline tests for the classifier.dev-backed Jev policy (issue #9).
+"""Tests for the faithful two-question Jev policy over classifier.dev (issue #9).
 
-These pin the response-shape handling that broke during the first live run:
-classifier.dev returns `{label, confidence}` for a single-label request and
-`{labels, scores}` when several labels are requested, and the upstream agent
-reads the executed action's probability by action id.
+These pin the contract that matters: the policy asks the SAME two questions
+upstream asks (operation, then target), maps the target back to a code-owned
+observed node id, and never lets the model invent a selector.
+
+An earlier test file pinned a one-question design that collapsed both decisions
+into a single menu. That design was the bug - it left Jev unable to choose an
+element - so these tests replace it rather than preserve it.
 """
 from __future__ import annotations
 
@@ -18,48 +21,73 @@ STATE = {
     "title": "Example",
     "text": "a page",
     "actions": [
-        {"id": "e1", "kind": "fill", "label": "What needs to be done?", "node": 1},
-        {"id": "e2", "kind": "click", "label": "Active", "node": 2},
+        {"id": "e1", "kind": "fill", "label": "Search", "node": 1, "role": "textbox", "value": ""},
+        {"id": "e2", "kind": "click", "label": "Go", "node": 2, "role": "button"},
+        {"id": "e3", "kind": "click", "label": "Cancel", "node": 3, "role": "button"},
     ],
 }
 
 
-def _client_returning(result):
-    client = mock.Mock()
-    client.classify.return_value = [result]
-    return client
+class TwoQuestionTest(unittest.TestCase):
+    def _choose(self, op_scores: dict, target_scores: dict | None):
+        """Drive `choose` with scripted per-question scores."""
+        calls = {"n": 0}
 
+        class FakeClient:
+            def classify(self, inputs, labels, instructions=None, max_labels=None):
+                calls["n"] += 1
+                scores = op_scores if calls["n"] == 1 else (target_scores or {})
+                return [{"labels": [], "scores": {k: scores.get(k, 0.01) for k in labels},
+                         "ms": 1, "model": "jev-1.13.0"}]
 
-class ScoresShapeTest(unittest.TestCase):
-    def test_multi_label_scores_shape(self):
-        result = {"labels": ["CLICK e2 :: Active"], "scores": {"CLICK e2 :: Active": 0.82, "DONE": 0.1, "BLOCKED": 0.08}}
-        with mock.patch.object(cp, "_client", return_value=_client_returning(result)):
-            d = cp.choose(STATE, "click Active", [])
-        self.assertEqual(d["choice"], "e2")
+        with mock.patch.object(cp, "_client", return_value=FakeClient()):
+            return cp.choose(STATE, "click Go", []), calls["n"]
+
+    def test_operation_then_target_are_two_questions(self):
+        # Two CLICK candidates, so the target head is a real choice.
+        d, n = self._choose({"CLICK": 0.9, "TYPE_TEXT": 0.2, "DONE": 0.1}, {"2": 0.9, "3": 0.1})
+        self.assertEqual(n, 2, "the target question must actually be asked")
         self.assertEqual(d["operation"], "CLICK")
-        self.assertAlmostEqual(d["confidence"], 0.82)
-        # The agent indexes probabilities by the executed action id.
-        self.assertIn("e2", d["probabilities"])
-
-    def test_single_label_shape(self):
-        result = {"label": "CLICK e2 :: Active", "confidence": 0.7}
-        with mock.patch.object(cp, "_client", return_value=_client_returning(result)):
-            d = cp.choose(STATE, "click Active", [])
+        self.assertEqual(d["target"], "2")
+        # The executed choice is upstream's observed node id, not a model string.
         self.assertEqual(d["choice"], "e2")
-        self.assertAlmostEqual(d["confidence"], 0.7)
 
-    def test_done_is_honoured(self):
-        result = {"labels": ["DONE"], "scores": {"CLICK e2 :: Active": 0.2, "DONE": 0.6, "BLOCKED": 0.2}}
-        with mock.patch.object(cp, "_client", return_value=_client_returning(result)):
-            d = cp.choose(STATE, "finish", [])
+    def test_no_target_question_when_operation_has_no_targets(self):
+        d, n = self._choose({"DONE": 0.9, "CLICK": 0.2}, None)
+        self.assertEqual(n, 1)
         self.assertEqual(d["choice"], "DONE")
-        self.assertIn("DONE", d["probabilities"])
 
-    def test_unknown_label_falls_back_to_blocked(self):
-        result = {"labels": ["NOT AN ACTION"], "scores": {"NOT AN ACTION": 0.9}}
-        with mock.patch.object(cp, "_client", return_value=_client_returning(result)):
-            d = cp.choose(STATE, "x", [])
-        self.assertNotIn(d["choice"], {"e1", "e2"})
+    def test_model_never_returns_a_selector(self):
+        d, _ = self._choose({"CLICK": 0.9, "TYPE_TEXT": 0.2}, {"2": 0.9, "3": 0.1})
+        self.assertIn(d["choice"], {"e1", "e2", "e3"})
+        self.assertNotIn("data-jev", d["choice"])
+        self.assertNotIn(">", d["choice"])
+
+    def test_single_candidate_target_skips_the_network(self):
+        # classifier.dev requires >=2 labels, so a lone candidate is answered locally.
+        one = {"url": "u", "title": "t", "text": "", "actions": [
+            {"id": "e1", "kind": "click", "label": "Only", "node": 1, "role": "button"}]}
+        calls = {"n": 0}
+
+        class FakeClient:
+            def classify(self, inputs, labels, instructions=None, max_labels=None):
+                calls["n"] += 1
+                return [{"labels": [], "scores": {k: 1.0 for k in labels}, "model": "jev-1.13.0"}]
+
+        with mock.patch.object(cp, "_client", return_value=FakeClient()):
+            d = cp.choose(one, "click", [])
+        self.assertEqual(d["choice"], "e1")
+
+
+class NormaliseTest(unittest.TestCase):
+    def test_scores_become_a_distribution(self):
+        p = cp._normalise({"a": 0.7, "b": 0.3, "unused": 5.0}, ["a", "b"])
+        self.assertAlmostEqual(sum(p.values()), 1.0)
+        self.assertGreater(p["a"], p["b"])
+
+    def test_missing_label_gets_a_floor_not_zero(self):
+        p = cp._normalise({"a": 0.7}, ["a", "b"])
+        self.assertGreater(p["b"], 0.0)
 
 
 if __name__ == "__main__":

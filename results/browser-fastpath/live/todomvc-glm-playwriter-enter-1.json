@@ -2,12 +2,16 @@
   "task": "todomvc",
   "rep": "1",
   "backend": "playwriter",
+  "compat": true,
+  "goal_state_reached": true,
+  "clean_termination": true,
+  "termination_failure": null,
   "policy": "glm",
   "condition": "glm+playwriter+enter",
   "fill_enter_compat": true,
-  "pass": false,
+  "pass": true,
   "verification": {
-    "url": "https://demo.playwright.dev/todomvc/#/",
+    "url": "https://demo.playwright.dev/todomvc/#/active",
     "items": [
       {
         "text": "Email supplier",
@@ -30,21 +34,22 @@
     ]
   },
   "error": null,
+  "error_kind": "ok",
   "source_repo": "Rajeev-SG/web-automation-microbench",
   "status": "done",
-  "wall_s": 22.701,
+  "wall_s": 18.589,
   "jev_decisions": 4,
   "actions": 3,
   "text_calls": 2,
-  "decision_p50_ms": 3808.5,
-  "decision_p95_ms": 4573.0,
+  "decision_p50_ms": 2301.0,
+  "decision_p95_ms": 2594.0,
   "decision_model": "z-ai/glm-5.3-flash",
   "decision_tokens": {
-    "input": 2354,
-    "output": 198,
-    "reasoning": 131
+    "input": 2356,
+    "output": 161,
+    "reasoning": 97
   },
-  "text_helper_ms_total": 2962.0,
+  "text_helper_ms_total": 3983.0,
   "history": [
     {
       "step": 1,
@@ -63,14 +68,9 @@
     {
       "step": 3,
       "kind": "click",
-      "choice": "e4",
+      "choice": "e5",
       "text": null,
-      "page_changed": false
+      "page_changed": true
     }
-  ],
-  "goal_state_reached": false,
-  "clean_termination": true,
-  "error_kind": "ok",
-  "_backfilled": true,
-  "termination_failure": null
+  ]
 }
