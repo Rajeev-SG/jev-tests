@@ -1,15 +1,11 @@
 {
   "task": "todomvc",
-  "rep": "1",
+  "rep": "3",
   "backend": "playwriter",
-  "compat": true,
-  "goal_state_reached": true,
-  "clean_termination": true,
-  "termination_failure": null,
-  "policy": "glm",
-  "condition": "glm+playwriter+enter",
+  "policy": "jev",
+  "condition": "jev+playwriter+enter",
   "fill_enter_compat": true,
-  "pass": true,
+  "pass": false,
   "verification": {
     "url": "https://demo.playwright.dev/todomvc/#/active",
     "items": [
@@ -34,28 +30,21 @@
     ]
   },
   "error": null,
-  "error_kind": "ok",
   "source_repo": "Rajeev-SG/web-automation-microbench",
-  "status": "done",
-  "wall_s": 27.12,
-  "jev_decisions": 4,
-  "actions": 3,
-  "text_calls": 2,
-  "decision_p50_ms": 2381.5,
-  "decision_p95_ms": 9703.0,
-  "decision_latencies_ms": [
-    1244.0,
-    9703.0,
-    2290.0,
-    2473.0
-  ],
-  "decision_model": "z-ai/glm-5.3-flash",
+  "status": "blocked",
+  "wall_s": 23.52,
+  "jev_decisions": 8,
+  "actions": 8,
+  "text_calls": 4,
+  "decision_p50_ms": 909.5,
+  "decision_p95_ms": 1136.0,
+  "decision_model": "classifier.dev/jev-1.13.0",
   "decision_tokens": {
-    "input": 2356,
-    "output": 338,
-    "reasoning": 278
+    "input": 0,
+    "output": 0,
+    "reasoning": 0
   },
-  "text_helper_ms_total": 6258.0,
+  "text_helper_ms_total": 5668.0,
   "history": [
     {
       "step": 1,
@@ -73,12 +62,45 @@
     },
     {
       "step": 3,
+      "kind": "fill",
+      "choice": "e2",
+      "text": "",
+      "page_changed": false
+    },
+    {
+      "step": 4,
+      "kind": "fill",
+      "choice": "e2",
+      "text": "",
+      "page_changed": false
+    },
+    {
+      "step": 5,
       "kind": "click",
       "choice": "e5",
       "text": null,
       "page_changed": true
+    },
+    {
+      "step": 6,
+      "kind": "click",
+      "choice": "e5",
+      "text": null,
+      "page_changed": false
+    },
+    {
+      "step": 7,
+      "kind": "click",
+      "choice": "e5",
+      "text": null,
+      "page_changed": false
+    },
+    {
+      "step": 8,
+      "kind": "click",
+      "choice": "e5",
+      "text": null,
+      "page_changed": false
     }
-  ],
-  "_bucket": "pass",
-  "_bucket_basis": "policy_outcome"
+  ]
 }

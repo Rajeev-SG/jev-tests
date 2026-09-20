@@ -4,47 +4,58 @@
     "pass": "goal state reached by the verifier AND the policy stopped with DONE",
     "goal_state_only": "verifier says the goal state was reached, but the policy never declared DONE",
     "no_goal_state": "policy stopped without reaching the goal state",
-    "transport_error": "browser transport failed; not a policy result",
+    "infra_error": "browser/transport infrastructure fault (timeout, no attached tab); excluded from policy rates",
+    "terminal_error": "harness-side crash before the policy produced a decision; excluded from policy rates",
+    "transport_error": "browser transport failed mid-run; not a policy result",
     "policy_format_error": "policy emitted an invalid action (e.g. a fill with no value)"
   },
   "note": "Only `+enter` runs are scored (the Enter-compat condition). Timed-out or format-error runs are kept in their buckets, never dropped.",
   "arms": {
     "glm+browser-relay": {
-      "runs": 3,
+      "runs": 5,
       "buckets": {
-        "no_goal_state": 2,
+        "no_goal_state": 3,
+        "policy_format_error": 1,
         "pass": 1
       },
       "goal_state_reached": 1,
       "clean_termination": 3,
       "pass": 1,
-      "median_wall_s_policy_completed": 17.8,
-      "median_decision_p50_ms": 2356,
-      "median_actions": 3,
+      "excluded_from_policy_rates": 0,
+      "infra_errors_excluded": 0,
+      "median_wall_s_all_runs": 13.4,
+      "median_wall_s_policy_completed": 12.8,
+      "median_decision_p50_ms": 2453,
+      "median_actions": 3.0,
       "decision_model": "z-ai/glm-5.3-flash",
-      "termination_failures": {},
+      "termination_failures": {
+        "step_budget": 2
+      },
       "files": [
         "todomvc-glm-browser-relay-enter-1.json",
         "todomvc-glm-browser-relay-enter-2.json",
-        "todomvc-glm-browser-relay-enter-3.json"
+        "todomvc-glm-browser-relay-enter-3.json",
+        "todomvc-glm-browser-relay-enter-4.json",
+        "todomvc-glm-browser-relay-enter-5.json"
       ]
     },
     "glm+playwriter": {
       "runs": 5,
       "buckets": {
-        "no_goal_state": 2,
-        "pass": 3
+        "pass": 4,
+        "no_goal_state": 1
       },
-      "goal_state_reached": 3,
-      "clean_termination": 4,
-      "pass": 3,
-      "median_wall_s_policy_completed": 20.6,
-      "median_decision_p50_ms": 1891,
+      "goal_state_reached": 4,
+      "clean_termination": 5,
+      "pass": 4,
+      "excluded_from_policy_rates": 0,
+      "infra_errors_excluded": 0,
+      "median_wall_s_all_runs": 27.1,
+      "median_wall_s_policy_completed": 27.1,
+      "median_decision_p50_ms": 2619,
       "median_actions": 4,
       "decision_model": "z-ai/glm-5.3-flash",
-      "termination_failures": {
-        "step_budget": 1
-      },
+      "termination_failures": {},
       "files": [
         "todomvc-glm-playwriter-enter-1.json",
         "todomvc-glm-playwriter-enter-2.json",
@@ -54,44 +65,47 @@
       ]
     },
     "jev+browser-relay": {
-      "runs": 3,
+      "runs": 5,
       "buckets": {
-        "no_goal_state": 2,
-        "policy_format_error": 1
+        "pass": 5
       },
-      "goal_state_reached": 0,
-      "clean_termination": 0,
-      "pass": 0,
-      "median_wall_s_policy_completed": 23.7,
-      "median_decision_p50_ms": 1085,
-      "median_actions": 5.0,
+      "goal_state_reached": 5,
+      "clean_termination": 5,
+      "pass": 5,
+      "excluded_from_policy_rates": 0,
+      "infra_errors_excluded": 0,
+      "median_wall_s_all_runs": 13.1,
+      "median_wall_s_policy_completed": 13.1,
+      "median_decision_p50_ms": 1218,
+      "median_actions": 4,
       "decision_model": "classifier.dev/jev-1.13.0",
-      "termination_failures": {
-        "repeated_action": 2,
-        "policy_format_error": 1
-      },
+      "termination_failures": {},
       "files": [
         "todomvc-jev-browser-relay-enter-1.json",
         "todomvc-jev-browser-relay-enter-2.json",
-        "todomvc-jev-browser-relay-enter-3.json"
+        "todomvc-jev-browser-relay-enter-3.json",
+        "todomvc-jev-browser-relay-enter-4.json",
+        "todomvc-jev-browser-relay-enter-5.json"
       ]
     },
     "jev+playwriter": {
       "runs": 5,
       "buckets": {
-        "goal_state_only": 3,
-        "transport_error": 2
+        "pass": 4,
+        "no_goal_state": 1
       },
-      "goal_state_reached": 3,
-      "clean_termination": 0,
-      "pass": 0,
-      "median_wall_s_policy_completed": 27.9,
-      "median_decision_p50_ms": 1220,
-      "median_actions": 8,
+      "goal_state_reached": 4,
+      "clean_termination": 4,
+      "pass": 4,
+      "excluded_from_policy_rates": 0,
+      "infra_errors_excluded": 0,
+      "median_wall_s_all_runs": 16.1,
+      "median_wall_s_policy_completed": 16.1,
+      "median_decision_p50_ms": 1350,
+      "median_actions": 4,
       "decision_model": "classifier.dev/jev-1.13.0",
       "termination_failures": {
-        "repeated_action": 3,
-        "transport_error": 2
+        "repeated_action": 1
       },
       "files": [
         "todomvc-jev-playwriter-enter-1.json",
@@ -102,8 +116,5 @@
       ]
     }
   },
-  "not_scored_non_enter_runs": [
-    "todomvc-glm-playwriter-1.json",
-    "todomvc-playwriter-1.json"
-  ]
+  "not_scored_non_enter_runs": []
 }

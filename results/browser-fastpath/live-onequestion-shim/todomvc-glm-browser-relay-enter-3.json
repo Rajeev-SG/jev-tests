@@ -1,13 +1,9 @@
 {
   "task": "todomvc",
-  "rep": "1",
-  "backend": "playwriter",
-  "compat": true,
-  "goal_state_reached": true,
-  "clean_termination": true,
-  "termination_failure": null,
+  "rep": "3",
+  "backend": "browser-relay",
   "policy": "glm",
-  "condition": "glm+playwriter+enter",
+  "condition": "glm+browser-relay+enter",
   "fill_enter_compat": true,
   "pass": true,
   "verification": {
@@ -34,28 +30,21 @@
     ]
   },
   "error": null,
-  "error_kind": "ok",
   "source_repo": "Rajeev-SG/web-automation-microbench",
   "status": "done",
-  "wall_s": 27.12,
+  "wall_s": 20.92,
   "jev_decisions": 4,
   "actions": 3,
   "text_calls": 2,
-  "decision_p50_ms": 2381.5,
-  "decision_p95_ms": 9703.0,
-  "decision_latencies_ms": [
-    1244.0,
-    9703.0,
-    2290.0,
-    2473.0
-  ],
+  "decision_p50_ms": 2356.0,
+  "decision_p95_ms": 3049.0,
   "decision_model": "z-ai/glm-5.3-flash",
   "decision_tokens": {
-    "input": 2356,
-    "output": 338,
-    "reasoning": 278
+    "input": 2481,
+    "output": 402,
+    "reasoning": 345
   },
-  "text_helper_ms_total": 6258.0,
+  "text_helper_ms_total": 3524.0,
   "history": [
     {
       "step": 1,
@@ -78,7 +67,5 @@
       "text": null,
       "page_changed": true
     }
-  ],
-  "_bucket": "pass",
-  "_bucket_basis": "policy_outcome"
+  ]
 }

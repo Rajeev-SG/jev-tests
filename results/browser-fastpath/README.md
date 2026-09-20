@@ -1,113 +1,87 @@
 # Test 6b — Jev fast path, live browser run (issue #9)
 
-**Verdict: the speed advantage is real; task improvement is not proven. Jev
-reached the goal state as often as GLM but never declared the task done.**
+**Verdict: on this task Jev is faster and at least as reliable, but the samples
+are small — read it as a strong signal, not a proven general result.**
 
-## What was run
+## The correction that matters
 
-A real browser task driven live: one loop, one browser bridge, one verifier. The
-only difference between arms is who picks the next action.
+An earlier version of this test reported Jev failing 0/5. **That was a bug in my
+harness, not in Jev.** `classifier_policy.py` had collapsed Jev's two questions
+(which operation, then which element) into one menu of concrete actions. That
+deleted the element decision, so the policy could only restate the same
+operation — exactly the "repeat-action loop" I had blamed on Jev.
 
-| arm | decision model | text helper |
-|---|---|---|
-| Jev | classifier.dev fast tier = `jev-1.13.0` | `openai/gpt-4.1-mini` |
-| baseline | `z-ai/glm-5.3-flash` | `openai/gpt-4.1-mini` |
+With upstream's real two-question framing — asked in one request, as
+`jev-ultrafast` does — Jev passes. `tests/test_upstream_conformance.py` now pins
+that framing against upstream's own `action_space()`, so the next divergence
+fails CI instead of silently producing a wrong result.
 
-Task: TodoMVC, minus the one step impossible for BOTH arms — "mark a todo
-complete". That checkbox is `opacity: 0`, and the action menu comes from the same
-`snapshot.js` for either model, so neither policy can be offered it. Success =
-two todos added and the Active filter applied.
+## Result (balanced: 5 reps per arm per transport, 20 runs)
 
-Reps: 5 per arm on Playwriter, 3 per arm on Browser Relay. Scored runs are the
-`+enter` condition only.
+Task: TodoMVC, minus the one step impossible for either arm (the "mark complete"
+checkbox is `opacity: 0`, so the shared menu never offers it to either policy).
+Success = two todos added and the Active filter applied.
 
-## Result
-
-Two separate questions, reported separately — a policy that reaches the goal but
-never stops is not the same as one that never reached the goal.
-
-| arm | runs | reached goal state | stopped itself (DONE) | median wall | decision p50 |
+| arm | runs | passed | median wall (all runs) | median wall (completed) | decision p50 |
 |---|---|---|---|---|---|
-| Jev + Playwriter | 5 | **3** | **0** | 27.9 s | 1220 ms |
-| GLM + Playwriter | 5 | **3** | 4 | 20.6 s | 1891 ms |
-| Jev + Browser Relay | 3 | 0 | 0 | 23.7 s | 1085 ms |
-| GLM + Browser Relay | 3 | 1 | 3 | 17.8 s | 2356 ms |
+| Jev + Playwriter | 5 | **4** | **16.1 s** | 16.1 s | 1350 ms |
+| GLM + Playwriter | 5 | 4 | 27.1 s | 27.1 s | 2619 ms |
+| Jev + Browser Relay | 5 | **5** | 13.1 s | 13.1 s | 1218 ms |
+| GLM + Browser Relay | 5 | 1 | 13.4 s | 12.8 s | 2453 ms |
 
-Termination cause per arm (`termination_failure` in each raw file):
+**Jev passed 9 of 10; GLM passed 5 of 10.** Jev decides roughly 2x faster
+(1.2–1.4 s vs 2.5–2.6 s per decision), and on Playwriter its median wall time is
+~40% lower (16.1 s vs 27.1 s).
 
-| arm | causes |
-|---|---|
-| Jev + Playwriter | repeated_action ×3, transport_error ×2 |
-| Jev + Browser Relay | repeated_action ×2, policy_format_error ×1 |
-| GLM + Playwriter | step_budget ×1 |
-| GLM + Browser Relay | none |
+**On Browser Relay the speed claim does not hold.** Medians are level (13.1 s vs
+13.4 s all-runs), and over the runs GLM actually completed it is marginally
+quicker (12.8 s vs 13.1 s) — it just fails most of them. The robust Relay
+difference is reliability: Jev 5/5, GLM 1/5 (three stopped without applying the
+filter, one crashed before its first action).
 
-Every Jev failure to terminate is the same cause: the policy re-issued an action
-it had already satisfied while the page did not change. That is now detected and
-named in each artifact rather than only showing up as a slow wall time.
+Both denominators are reported because a fast failure would otherwise flatter an
+arm by being excluded. Both medians are printed above.
 
-Buckets are explicit and every run is counted (`scripts/summarize_live.py`):
+## Where Jev still loses
 
-- `jev+playwriter`: 3 `goal_state_only`, 2 `transport_error`
-- `jev+browser-relay`: 2 `no_goal_state`, 1 `transport_error`
-- `glm+playwriter`: 3 `pass`, 2 `no_goal_state`
-- `glm+browser-relay`: 1 `pass`, 2 `no_goal_state`
+One Playwriter run in five (`todomvc-jev-playwriter-enter-3.json`) looped on an
+already-satisfied action for 27 decisions and hit the step budget. So the failure
+mode is real but rare here, and it is the same class of error as before.
 
-**The one claim the data supports: Jev decides about twice as fast** (~1.1–1.2 s
-vs ~1.9–2.4 s per decision).
+## Method and caveats
 
-**The claim it does not support: that Jev improves task success.** Jev reached
-the goal state 3 of 5 on Playwriter — the same as GLM — but its three successful
-runs are scored `goal_state_only`, not pass, because Jev never chose DONE. On
-Browser Relay Jev reached the goal state 0 of 3 (one run died on a transport
-timeout, two stalled). At n=5 and n=3 on one task the difference is not
-statistically meaningful; treat it as inconclusive.
+- **One loop, one bridge, one verifier.** Only the decision model changes.
+- **Faithful two-question framing**, pinned by a conformance test against
+  upstream's `action_space()`; the model never emits a selector.
+- **Jev via classifier.dev** (`jev-1.13.0`). This Mac has no TypeSafe key.
+  classifier.dev's independent scores are normalised per question before
+  upstream's own validation. Single-candidate heads are answered locally, since
+  classifier.dev rejects fewer than two labels. This measures Jev's decisions
+  over a different endpoint — not TypeSafe's latency or availability.
+- **Not token-parity.** GLM reports token usage and Jev does not, so cost could
+  not be compared; the claim here is wall time and pass rate only.
+- **Small n.** 5 reps per arm per transport, one controlled task. A strong
+  screen, not a trend; a single flip changes Jev to 8/10.
+- **Bucket discipline.** Infrastructure faults (timeouts, no attached tab),
+  policy-format faults (declining to supply a value) and goal-state failures are
+  counted in separate buckets; `scripts/summarize_live.py` asserts p95 >= p50 and
+  refuses to score runs missing required fields.
+- **Both run sets are committed.** `live/` holds this corrected run;
+  `live-onequestion-shim/` holds the superseded broken run, copied byte-identical
+  from commit `9892447` so the correction can be checked rather than trusted.
 
-## Why Jev never finishes
+## Changelog
 
-Both models reach the same page states, but Jev re-issues an action it has
-already satisfied and never terminates:
-
-```
-fill "Email supplier"   ✓
-fill "Review invoice"   ✓
-fill e2 (the same field again)   ← no page change
-click e5 (Active)       ✓        ← goal state reached here
-click e5 again
-click e5 again            → step cap; never says DONE
-```
-
-GLM, on the same page and menu, stops and emits DONE. The gap is termination
-judgement, not the transport.
-
-## Limitations, in order of importance
-
-1. **This is Jev-derived, one-question framing — not upstream Jev.** Upstream
-   Jev asks two questions per step (operation, then target). classifier.dev
-   returns a single classification, so the two collapse into one menu choice. The
-   extra "is the goal met?" signal upstream gets from its second question is not
-   exercised here — and that is precisely where Jev failed. Nothing in this
-   result should be read as a verdict on upstream Jev's termination behaviour.
-2. **One step removed for fairness** (the invisible complete-checkbox), as above.
-3. **Small n.** 5 and 3 reps per arm is a screen. The direction is consistent
-   across both transports, but the pass-rate comparison is inconclusive.
-4. **Transport noise.** Two Jev Playwriter runs died on a 10 s transport timeout
-   (bucket `transport_error`); one Jev Browser Relay run died because the policy
-   requested a fill with no value, which is now rejected before it reaches the
-   browser and bucketed separately (`policy_format_error`). Every run is
-   preserved in its own bucket, never silently dropped. No measured wall or
-   decision latencies for these runs are included in any median.
-5. **The summary is generated** by `scripts/summarize_live.py` from the per-rep
-   JSONs, and every bucket is traceable: older artifacts were stamped with the
-   run's own verifier predicate by `scripts/backfill_live_artifacts.py`, so goal
-   state is never re-derived from a task-specific literal. The summarizer refuses
-   to score a run that lacks the field rather than guessing.
+- **2026-09-20** — run set extended from 5-vs-3 to a balanced 5 reps per arm per
+  transport (20 runs), after the first review flagged the unbalanced design. The
+  pre-extension numbers (Jev 4/5 & 3/3, GLM 4/5 & 1/3) are superseded; every figure
+  above comes from the committed `live/` set only.
 
 ## Reproduce
 
 ```sh
 export OPENROUTER_API_KEY=<key>          # GLM baseline + text helper
-export JEV_USE_CACHE=0                   # measure real decision latency, not cache hits
+export JEV_USE_CACHE=0                   # measure real decision latency
 JEV_BROWSER_BACKEND=playwriter PLAYWRITER_SESSION=<id> \
   uv run python scripts/live_jev_run.py --task todomvc --backend playwriter \
     --policy jev --fill-enter --compat --rep 1

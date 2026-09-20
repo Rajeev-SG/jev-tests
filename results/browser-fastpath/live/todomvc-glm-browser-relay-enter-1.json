@@ -2,6 +2,10 @@
   "task": "todomvc",
   "rep": "1",
   "backend": "browser-relay",
+  "compat": true,
+  "goal_state_reached": false,
+  "clean_termination": true,
+  "termination_failure": null,
   "policy": "glm",
   "condition": "glm+browser-relay+enter",
   "fill_enter_compat": true,
@@ -30,21 +34,27 @@
     ]
   },
   "error": null,
+  "error_kind": "ok",
   "source_repo": "Rajeev-SG/web-automation-microbench",
   "status": "done",
-  "wall_s": 12.311,
+  "wall_s": 10.646,
   "jev_decisions": 3,
   "actions": 2,
   "text_calls": 2,
-  "decision_p50_ms": 1515.0,
-  "decision_p95_ms": 1515.0,
+  "decision_p50_ms": 1517.0,
+  "decision_p95_ms": 1983.0,
+  "decision_latencies_ms": [
+    1371.0,
+    1983.0,
+    1517.0
+  ],
   "decision_model": "z-ai/glm-5.3-flash",
   "decision_tokens": {
     "input": 1804,
-    "output": 252,
-    "reasoning": 202
+    "output": 210,
+    "reasoning": 165
   },
-  "text_helper_ms_total": 2664.0,
+  "text_helper_ms_total": 2822.0,
   "history": [
     {
       "step": 1,
@@ -61,9 +71,6 @@
       "page_changed": true
     }
   ],
-  "goal_state_reached": false,
-  "clean_termination": true,
-  "error_kind": "ok",
-  "_backfilled": true,
-  "termination_failure": null
+  "_bucket": "no_goal_state",
+  "_bucket_basis": "policy_outcome"
 }

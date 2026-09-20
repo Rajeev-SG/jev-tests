@@ -2,25 +2,83 @@
   "task": "todomvc",
   "rep": "2",
   "backend": "browser-relay",
+  "compat": true,
+  "goal_state_reached": true,
+  "clean_termination": true,
+  "termination_failure": null,
   "policy": "jev",
   "condition": "jev+browser-relay+enter",
   "fill_enter_compat": true,
-  "pass": false,
-  "verification": null,
-  "error": "RuntimeError: text helper declined to supply a value: '{\"text\": null}'",
+  "pass": true,
+  "verification": {
+    "url": "https://demo.playwright.dev/todomvc/#/active",
+    "items": [
+      {
+        "text": "Email supplier",
+        "completed": false
+      },
+      {
+        "text": "Review invoice",
+        "completed": false
+      }
+    ],
+    "saved": [
+      {
+        "title": "Email supplier",
+        "completed": false
+      },
+      {
+        "title": "Review invoice",
+        "completed": false
+      }
+    ]
+  },
+  "error": null,
+  "error_kind": "ok",
   "source_repo": "Rajeev-SG/web-automation-microbench",
-  "status": "error",
-  "wall_s": 17.894,
-  "jev_decisions": 0,
-  "actions": 0,
-  "text_calls": 0,
-  "decision_p50_ms": null,
-  "decision_p95_ms": null,
-  "history": [],
-  "decisions": [],
-  "goal_state_reached": false,
-  "clean_termination": false,
-  "error_kind": "invalid_decision",
-  "_backfilled": true,
-  "termination_failure": "policy_format_error"
+  "status": "done",
+  "wall_s": 11.559,
+  "jev_decisions": 4,
+  "actions": 3,
+  "text_calls": 2,
+  "decision_p50_ms": 1091.5,
+  "decision_p95_ms": 2053.0,
+  "decision_latencies_ms": [
+    994.0,
+    987.0,
+    2053.0,
+    1189.0
+  ],
+  "decision_model": "classifier.dev/jev-1.13.0",
+  "decision_tokens": {
+    "input": 0,
+    "output": 0,
+    "reasoning": 0
+  },
+  "text_helper_ms_total": 2938.0,
+  "history": [
+    {
+      "step": 1,
+      "kind": "fill",
+      "choice": "e2",
+      "text": "Email supplier",
+      "page_changed": true
+    },
+    {
+      "step": 2,
+      "kind": "fill",
+      "choice": "e2",
+      "text": "Review invoice",
+      "page_changed": true
+    },
+    {
+      "step": 3,
+      "kind": "click",
+      "choice": "e5",
+      "text": null,
+      "page_changed": true
+    }
+  ],
+  "_bucket": "pass",
+  "_bucket_basis": "policy_outcome"
 }

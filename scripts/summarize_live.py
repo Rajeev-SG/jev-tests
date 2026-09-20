@@ -29,10 +29,28 @@ NAME = re.compile(r"^(?P<task>.+?)-(?P<policy>jev|glm)-(?P<backend>browser-relay
                   r"(?P<enter>-enter)?-(?P<rep>\d+)\.json$")
 
 
+INFRA_MARKERS = ("Code execution timed out", "extension_not_connected",
+                 "no attached tab", "chrome", "Playwriter", "browser-relay")
+# A policy that declines to supply a field value is a policy failure, not the
+# transport: it must not be counted as infrastructure noise.
+POLICY_FORMAT_MARKERS = ("did not supply a field value", "returned no value",
+                         "text helper returned no value", "returned empty content")
+
+
+def is_infra_failure(d: dict) -> bool:
+    """A transport/infrastructure fault, not a policy decision.
+
+    These runs never invoked the model, so counting them against an arm's pass
+    rate would bias the comparison by whichever way the flakes fell.
+    """
+    msg = d.get("error") or ""
+    return d.get("status") == "error" and any(m.lower() in msg.lower() for m in INFRA_MARKERS)
+
+
 def classify(d: dict) -> str:
+    """Bucket one run. Every bucket is defined in the summary legend."""
     if d.get("pass"):
         return "pass"
-    v = d.get("verification") or {}
     if "goal_state_reached" not in d:
         # Never guess. A run written before the dual-scoring change must be
         # backfilled with the real predicate (scripts/backfill_live_artifacts.py)
@@ -41,9 +59,21 @@ def classify(d: dict) -> str:
             f"{d.get('_file')} has no goal_state_reached field; run "
             "scripts/backfill_live_artifacts.py first")
     got_goal = bool(d["goal_state_reached"])
+
     if d.get("status") == "error":
-        return ("policy_format_error" if d.get("error_kind") == "invalid_decision"
-                else "transport_error")
+        msg = (d.get("error") or "").lower()
+        if any(m.lower() in msg for m in POLICY_FORMAT_MARKERS):
+            return "policy_format_error"
+        if is_infra_failure(d):
+            return "infra_error"
+        if d.get("error_kind") == "invalid_decision":
+            return "policy_format_error"
+        # A crash with no decisions and no actions never reached the policy, so
+        # it is a harness fault, not a model-arm failure.
+        if not d.get("jev_decisions") and not d.get("actions"):
+            return "terminal_error"
+        return "transport_error"
+
     if got_goal:
         return "goal_state_only"
     return "no_goal_state"
@@ -73,7 +103,9 @@ def main() -> None:
             "pass": "goal state reached by the verifier AND the policy stopped with DONE",
             "goal_state_only": "verifier says the goal state was reached, but the policy never declared DONE",
             "no_goal_state": "policy stopped without reaching the goal state",
-            "transport_error": "browser transport failed; not a policy result",
+            "infra_error": "browser/transport infrastructure fault (timeout, no attached tab); excluded from policy rates",
+    "terminal_error": "harness-side crash before the policy produced a decision; excluded from policy rates",
+    "transport_error": "browser transport failed mid-run; not a policy result",
             "policy_format_error": "policy emitted an invalid action (e.g. a fill with no value)",
         },
         "note": "Only `+enter` runs are scored (the Enter-compat condition). Timed-out or "
@@ -85,12 +117,24 @@ def main() -> None:
         buckets = collections.Counter(r["_bucket"] for r in rows)
         valid = [r for r in rows if r["_bucket"] in ("pass", "goal_state_only", "no_goal_state")]
         p50 = [r["decision_p50_ms"] for r in valid if r.get("decision_p50_ms")]
+        for r in valid:
+            a, b = r.get("decision_p50_ms"), r.get("decision_p95_ms")
+            if a is not None and b is not None and b < a:
+                raise SystemExit(
+                    f"{r.get('_file')} has p95 {b} < p50 {a}; latency percentiles are invalid")
         out["arms"][arm] = {
             "runs": len(rows),
             "buckets": dict(buckets),
             "goal_state_reached": sum(1 for r in rows if r["_goal"]),
             "clean_termination": sum(1 for r in rows if r["_clean"]),
             "pass": buckets.get("pass", 0),
+            "excluded_from_policy_rates": (
+                buckets.get("infra_error", 0) + buckets.get("terminal_error", 0)),
+            "infra_errors_excluded": buckets.get("infra_error", 0),
+            # Both denominators, so a fast failure cannot flatter an arm by being
+            # dropped: all runs, and runs that actually reached the browser.
+            "median_wall_s_all_runs": round(
+                statistics.median([r["wall_s"] for r in rows]), 1) if rows else None,
             "median_wall_s_policy_completed": round(
                 statistics.median([r["wall_s"] for r in valid]), 1) if valid else None,
             "median_decision_p50_ms": round(statistics.median(p50)) if p50 else None,

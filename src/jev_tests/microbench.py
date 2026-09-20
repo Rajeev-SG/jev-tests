@@ -8,6 +8,7 @@ import importlib
 import json
 import os
 from pathlib import Path
+import math
 import statistics
 import sys
 import time
@@ -40,7 +41,7 @@ def _summary(state: dict, wall_s: float) -> dict:
     p95 = None
     if dms:
         ordered = sorted(dms)
-        p95 = ordered[max(0, int(len(ordered) * 0.95) - 1)]
+        p95 = ordered[max(0, math.ceil(len(ordered) * 0.95) - 1)]
     return {
         "status": state.get("status"),
         "wall_s": round(wall_s, 3),
